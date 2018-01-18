@@ -20,8 +20,8 @@ tau_E = 20; %ms; membrane time constant (20ms for E)
 tau_I = 10; %ms; membrane time constant (10ms for I)
 tau = [(tau_E/100); (tau_I/100)];
 
-% Input
-h = [0.1; 0.1]; %mV; no input = 0; somewhat larger input = 2; large input = 15
+%input
+h = [0; 0]; %mV; no input = 0; somewhat larger input = 2; large input = 15
 
 
 %% ODE
