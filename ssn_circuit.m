@@ -19,5 +19,6 @@ figure;
 plot(t, u)
 
 %% To Do
-% add input noise \eta > OU process (is ode45)
+% add input noise \eta > OU process
+
 
