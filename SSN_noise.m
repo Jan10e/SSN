@@ -34,6 +34,7 @@ plot(t,x);
 
 % Vm for neuron E and I
 u_0 = [-80; 60]; %-80 for E, 60 for I
+tend = 5;
 
 % Euler loop
 u = zeros(2,length(W));
@@ -41,7 +42,19 @@ u(:,1) = u_0;
 for ii = 1: length(W)-1
     
       % Take the Euler step + x(i) which is the noise
-      u(:,ii+1) = dt*ssn_ode(t, u(:,ii)) + (x(:,ii) * 0);
+      u(:,ii+1) = u_0 + dt*ssn_ode(t, u(:,ii)) + (x(:,ii) * 0);
+      
+end
+
+figure;
+plot(t, u)
+
+
+
+for ii = 1: length(W)-1
+    
+      % Take the Euler step + x(i) which is the noise
+      u(:,ii+1) = ssn_ode(t, u(:,ii));
       
 end
 
