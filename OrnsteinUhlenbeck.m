@@ -45,11 +45,11 @@ hold on
 %% Analytical solution
 % with Wiener increments and ``scaled-time transformed'' Wiener process
 th = 1;
-mu = 1.2;
+mu = 0;
 sig = 0.3;
 dt = 1e-2;
-t = 0:dt:2;                             % Time vector
-x0 = 0;                                 % Set initial condition
+t = 0:dt:5;                             % Time vector
+x0 = 1;                                 % Set initial condition
 rng(1);                                  % Set random seed
 W = zeros(1,length(t));        % Allocate integrated W vector
 
@@ -62,5 +62,6 @@ x = x0*ex+mu*(1-ex)+sig*ex.*W/sqrt(2*th);
 
 %figure;
 plot(t,x);
+
 
 

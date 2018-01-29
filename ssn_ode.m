@@ -15,9 +15,9 @@ w_IE = 1.2;
 w_II = -0.5;
 W = [w_EE w_EI; w_IE w_II];
 
-% Membrane time constant
-tau_E = 20; %ms; membrane time constant (20ms for E)
-tau_I = 10; %ms; membrane time constant (10ms for I)
+% Membrane time constant 
+tau_E = 20; %ms; 20ms for E
+tau_I = 10; %ms; 10ms for I
 tau = [(tau_E/1000); (tau_I/1000)];
 
 %input
@@ -25,7 +25,7 @@ h = [0; 0]; %mV; no input = 0; somewhat larger input = 2; large input = 15
 
 
 %% ODE
-du = ((-u +V_rest) + W*(k * ReLU(u - V_rest).^n) + h)./tau;
+du = ((-u + V_rest) + W*(k * ReLU(u - V_rest).^n) + h)./tau;
 
 
 end
