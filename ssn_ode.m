@@ -23,10 +23,8 @@ tau = [(tau_E/1000); (tau_I/1000)];
 %input
 h = [0; 0]; %mV; no input = 0; somewhat larger input = 2; large input = 15
 
-
 %% ODE
 du = ((-u + V_rest) + W*(k * ReLU(u - V_rest).^n) + h)./tau;
-
 
 end
 
