@@ -39,4 +39,3 @@ G = @(t, eta) sqrt(2 * tau_noise * sum_noise) * (1/tau_noise); %diffusion
 
 %% SDE
 eta = sde(F, G, 'StartState', [0; 1]); 
-%eta = eta/tau_noise;
