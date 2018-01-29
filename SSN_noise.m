@@ -1,3 +1,11 @@
+% author:              Jantine Broek
+% collaborator:     Yashar Ahmadian
+% goal:                 recreate E-I 2D model of Hennequin add noise and so simulate data of Kohn&Cohen. 
+%                          We focused on analysing how the intrinsic dynamics of the network shaped external noise
+%                          to give rise to stimulus dependent patterns of response variability.
+% model:              stabilized supralinear network model with OU process
+%                          (noise added per dt)
+
 %% OUP for noise
 % with Wiener increments and ``scaled-time transformed'' Wiener process
 % This is a Forcing term for the dynamical model
