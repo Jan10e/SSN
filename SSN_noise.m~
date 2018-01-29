@@ -1,0 +1,57 @@
+%% OUP for noise
+% with Wiener increments and ``scaled-time transformed'' Wiener process
+% This is a Forcing term for the dynamical model
+th = 1;
+mu = 0;                                 % mu to 0 as it needs to decay to 0
+sig = 0.3;
+dt = 1e-2;
+t = 0:dt:5;                             % Time vector
+x0 = 1;                                 % Set initial condition (not 0, otherwise you don't see it decaying to 0)
+rng(1);                                  % Set random seed
+
+% create two processes: one for E population and one for I population
+W = zeros(2,length(t));        % Allocate integrated W vector
+
+for m = 1:length(t)-1
+    W(:,m+1) = W(:,m)+sqrt(exp(2*th*t(:,m+1))-exp(2*th*t(:,m)))*randn(2,1);
+end
+
+ex = exp(-th*t);
+x = x0*ex+mu*(1-ex)+sig*ex.*W/sqrt(2*th);
+
+%figure;
+plot(t,x);
+
+%% Euler method forward method
+% Use noise to propaged model forward
+% create for loop 
+
+% Vm for neuron E and I
+u_0 = [-80; 60]; %-80 for E, 60 for I
+
+
+% Euler loop
+for m = 1: length(W)-1
+
+      % Store the point in time as a temporary variable
+      %t_i = tgrid(ii);
+
+      % Take the Euler step into the temporary variable + x(i) which is the
+      % noise
+      u(:,m+1) = exp(th*t(m+1)) * ssn_ode(t, u_0) + x(:,m+1);
+
+      % Store the Euler step
+      %Y(ii+1,:) = u_1;
+
+      % Update the temporary variable
+      %u_0 = u_1;
+
+end
+
+figure;
+plot(t, u)
+
+
+%% Sanity check
+% look how this works for variaous tau > when tau is really small and big
+

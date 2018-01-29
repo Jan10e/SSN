@@ -3,7 +3,6 @@
 % Goal: Simulating the Ornstein-Uhlenbeck process
 % Reference: https://math.stackexchange.com/questions/1287634/implementing-ornstein-uhlenbeck-in-matlab
 
-
 %% Simulation
 th = 1;
 mu = 1.2;
