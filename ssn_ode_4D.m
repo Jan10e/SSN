@@ -4,8 +4,8 @@ function [ du ] = ssn_ode_4D(t, u)
 %   Vm of cell i
 
 %% Parameters
-k = 0.3; %scaling constant 
-n = 2;
+k = 0.01; %scaling constant 
+n = 2.2;
 V_rest = -70; %mV; resting potential
  
 % Connectivity Matrix W as in Kuchibotla, Miller & Froemke
@@ -27,7 +27,10 @@ tau_V = 10/1000; %ms; 10ms for all VIP
 tau = [tau_E; tau_P; tau_S; tau_V];
 
 %input
-h = [0; 0; 0; 0]; %mV; no input = 0; somewhat larger input = 2; large input = 15
+h = [0; 
+    0; 
+    0; 
+    0]; %mV; no input = 0; somewhat larger input = 2; large input = 15
 
 %% ODE
 du = ((-u + V_rest) + W*(k * ReLU(u - V_rest).^n) + h)./tau;

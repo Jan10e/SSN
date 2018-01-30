@@ -8,11 +8,11 @@
 %% Parameters
 
 % Vm for neuron E and I
-u_0 = [-80; 60; 40; 70]; %-80 for E, for I's positive values
+u_0 = [-80; 60; 60; 60]; %-80 for E, for I's positive values
 
 % Time span
 dt = 0.0003;
-tspan =(0:dt:3); % 30ms time bin
+tspan =(0:dt:2); % 30ms time bin
 
 % Noise correlation time constant
 tau_noise = 50/1000; %ms 

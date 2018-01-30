@@ -11,18 +11,49 @@
 u_0 = [-80; 60]; %-80 for E, 60 for I
 %u_0 = ones(2,1);
 
-% Time span
-%tspan = [0 5];
-dt = 0.0003;
-tspan =(0:dt:3); % 30ms time bin
-
-% Noise correlation time constant
-tau_noise = 50/1000; %ms 
-
 % Membrane time constant
-tau_E = 20; %ms; membrane time constant (20ms for E)
-tau_I = 10; %ms; membrane time constant (10ms for I)
-tau = [(tau_E/1000); (tau_I/1000)];
+tau_E = 20/1000; %ms; membrane time constant (20ms for E)
+tau_I = 10/1000; %ms; membrane time constant (10ms for I)
+tau = [tau_E; tau_I];
+
+% Initial and time vector
+T_init = 0;
+T_final = 100;
+dt = 0.001;
+
+% Noise process is Ornstein-Uhlenbeck
+tau_noise = 50/1000; %ms 
+% Input noise std.
+sigma_0E = 0.2;     %mV; E cells
+sigma_0I = 0.1;     %mV; I cells
+sigma= [sigma_0E; sigma_0I]; 
+sigma_scaled = sigma.*(1 + tau/tau_noise).^0.5;
+eta_init = [1 -1];
+seed = 1;
+
+%% Data Structures
+Tt = (T_init:dt:T_final);
+Uu = zeros(length(Tt), 2);
+eta = zeros(length(Tt), 2);
+
+%% Integration
+% generate a graph of fluctuations versus input
+stds = [];
+h_range = (0:0.2:20);
+
+for h_factor = h_range
+    
+    %update input
+    h_factor
+    h = ones(2) * h_factor;
+    
+    %first generate noise vector
+    eta(1,:) = eta_init;
+    rng(seed);
+    
+    for iT, t = 
+        
+    
 
 %% SSN ODE (without noise term)
 % 1.) open ReLU.m and ssn_ode.m function files
@@ -40,16 +71,16 @@ plot(t, u)
 % add Wiener process
 
 % Input noise std.
-s_0E = 0.2;     %mV; E cells
-s_0I = 0.1;     %mV; I cells
-s_0 = [s_0E; s_0I]; 
+sigma_0E = 0.2;     %mV; E cells
+sigma_0I = 0.1;     %mV; I cells
+sigma_0 = [sigma_0E; sigma_0I]; 
 
 % Initialize output d\eta (W)
 W = zeros(2,length(u));
 
 
 for ii = 1:length(u)-1
-    W(:,ii+1) = W(:,ii) + (1./tau).*(-W(:,ii) *dt + (2 * tau .* s_0.^2).^0.5.*randn(2,1) * dt.^0.5);
+    W(:,ii+1) = W(:,ii) + (1./tau).*(-W(:,ii) *dt + (2 * tau .* sigma_0.^2).^0.5.*randn(2,1) * dt.^0.5);
 end
 
 plot(t, u+transpose(W))

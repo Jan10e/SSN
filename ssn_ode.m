@@ -1,4 +1,4 @@
-function [ du ] = ssn_ode(t, u)
+function [ du ] = ssn_ode(u, t)
 %SSN ODE is a generic function 
 %   Is working with ReLU function and parameters; t is time bins and u is
 %   Vm of cell i
@@ -16,9 +16,9 @@ w_II = -0.5;
 W = [w_EE w_EI; w_IE w_II];
 
 % Membrane time constant 
-tau_E = 20; %ms; 20ms for E
-tau_I = 10; %ms; 10ms for I
-tau = [(tau_E/1000); (tau_I/1000)];
+tau_E = 20/1000; %ms; 20ms for E
+tau_I = 10/1000; %ms; 10ms for I
+tau = [tau_E; tau_I];
 
 %input
 h = [0; 0]; %mV; no input = 0; somewhat larger input = 2; large input = 15
