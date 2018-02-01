@@ -75,10 +75,8 @@ def ReLU(x, alpha=0):
     return sp.maximum(x, x*alpha*sp.ones(x.shape))
 
 def df(u, t):
-    r = Kk*ReLU(u - V_rest)**Nn
-    du = ((-u + V_rest) + sp.dot(Ww, r + h))/tau
+    du = ((-u + V_rest) + sp.dot(Ww, (Kk*ReLU(u - V_rest)**Nn)) + h)/tau
     return du 
-    return r
 
 def euler(u, t, dt, df):
     return u + df(u, t)*dt
@@ -130,7 +128,10 @@ for h_factor in h_range:
     # Get std and mean Vm
     stds.append(sp.std(Uu, axis=0))
     mean.append(sp.mean(Uu, axis=0))
-    trace.append(sp.mean(r, axis=0))
+    
+    # Get the rates
+    R = Kk*ReLU(Uu - V_rest)**Nn    
+    trace.append(sp.mean(R, axis=0))
     
 
 
