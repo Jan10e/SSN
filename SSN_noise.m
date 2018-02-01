@@ -9,6 +9,8 @@
 %% OUP for noise
 % with Wiener increments and ``scaled-time transformed'' Wiener process
 % This is a Forcing term for the dynamical model
+clear all, close all
+
 th = 1;
 mu = 0;                                 % mu to 0 as it needs to decay to 0
 sig = 0.3;
@@ -42,19 +44,7 @@ u(:,1) = u_0;
 for ii = 1: length(W)-1
     
       % Take the Euler step + x(i) which is the noise
-      u(:,ii+1) = u_0 + dt*ssn_ode(t, u(:,ii)) + (x(:,ii) * 0);
-      
-end
-
-figure;
-plot(t, u)
-
-
-
-for ii = 1: length(W)-1
-    
-      % Take the Euler step + x(i) which is the noise
-      u(:,ii+1) = ssn_ode(t, u(:,ii));
+      u(:,ii+1) = u_0 + ssn_ode(t, u(:,ii))*dt + (x(:,ii)*0);
       
 end
 
