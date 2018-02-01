@@ -52,6 +52,8 @@ figure;
 plot(t, u)
 
 
+
+
 %% Sanity check
 % look how this works for variaous tau > when tau is really small and big
 
