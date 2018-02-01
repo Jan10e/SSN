@@ -15,7 +15,7 @@ th = 1;
 mu = 0;                                 % mu to 0 as it needs to decay to 0
 sig = 0.3;
 dt = 1e-4;
-t = 0:dt:5;                             % Time vector
+t = 0:dt:20;                             % Time vector
 x0 = 1;                                 % Set initial condition (not 0, otherwise you don't see it decaying to 0)
 rng(1);                                  % Set random seed
 
@@ -35,8 +35,8 @@ plot(t,x);
 %% Euler method forward method + noise W
 
 % Vm for neuron E and I
-u_0 = [-80; 60]; %-80 for E, 60 for I
-tend = 5;
+u_0 = [-60; -80]; %-80 for E, 60 for I
+%tend = 1;
 
 % Euler loop
 u = zeros(2,length(W));
@@ -44,15 +44,36 @@ u(:,1) = u_0;
 for ii = 1: length(W)-1
     
       % Take the Euler step + x(i) which is the noise
-      u(:,ii+1) = u_0 + ssn_ode(t, u(:,ii))*dt + (x(:,ii)*0);
+      u(:,ii+1) = u(:,ii) + ssn_ode(t, (u(:,ii) + x(:,ii)))*dt;
       
 end
 
 figure;
 plot(t, u)
 
-
-
+% stds = [];
+% h_range = (0:0.5:20);
+% for n = h_range
+%     
+%     % update input
+%     disp(n)
+%     h = ones(2) * n;
+%     
+%     %get time vector
+% %     count = (1:1:length(u));
+% %     t = [count; u]';
+%     
+%     for m = 1: length(u)-1
+%     
+%       % Take the Euler step + x(i) which is the noise
+%       u(:,m+1) = u_0 + ssn_ode(t, u(:,m))*dt + (x(:,m)*0);
+%       
+%     end
+%     
+%     %stds = append(std(u(:,n)));
+%     stds = std(u);
+%       
+% end
 
 %% Sanity check
 % look how this works for variaous tau > when tau is really small and big
