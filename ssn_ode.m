@@ -1,4 +1,4 @@
-function [ df ] = ssn_ode(u, t)
+function [ du ] = ssn_ode(t, u)
 %SSN ODE is a generic function 
 %   Is working with ReLU function and parameters; t is time bins and u is
 %   Vm of cell i
@@ -24,7 +24,7 @@ tau = [tau_E; tau_I];
 h = [0; 0]; %mV; no input = 0; somewhat larger input = 2; large input = 15
 
 %% ODE
-du = ((-u + V_rest) + W*(k * ReLU(u - V_rest).^n) + h)./tau;
+du = ((-u + V_rest) + W*(k.*ReLU(u - V_rest).^n) + h)./tau;
 
 end
 
