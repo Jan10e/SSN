@@ -14,8 +14,8 @@ clear all, close all
 th = 1;
 mu = 0;                                 % mu to 0 as it needs to decay to 0
 sig = 0.3;
-dt = 1e-4;
-t = 0:dt:20;                             % Time vector
+dt = 1e-3;
+t = 0:dt:100;                             % Time vector
 x0 = 1;                                 % Set initial condition (not 0, otherwise you don't see it decaying to 0)
 rng(1);                                  % Set random seed
 
@@ -38,42 +38,62 @@ plot(t,x);
 u_0 = [-60; -80]; %-80 for E, 60 for I
 %tend = 1;
 
+h = [0; 0];
+
 % Euler loop
 u = zeros(2,length(W));
 u(:,1) = u_0;
 for ii = 1: length(W)-1
     
       % Take the Euler step + x(i) which is the noise
-      u(:,ii+1) = u(:,ii) + ssn_ode(t, (u(:,ii) + x(:,ii)))*dt;
+      u(:,ii+1) = u(:,ii) + ssn_ode(t, (u(:,ii) + x(:,ii)), h)*dt;
       
 end
 
 figure;
 plot(t, u)
 
-% stds = [];
-% h_range = (0:0.5:20);
-% for n = h_range
-%     
-%     % update input
-%     disp(n)
-%     h = ones(2) * n;
-%     
-%     %get time vector
-% %     count = (1:1:length(u));
-% %     t = [count; u]';
-%     
-%     for m = 1: length(u)-1
-%     
-%       % Take the Euler step + x(i) which is the noise
-%       u(:,m+1) = u_0 + ssn_ode(t, u(:,m))*dt + (x(:,m)*0);
-%       
-%     end
-%     
-%     %stds = append(std(u(:,n)));
-%     stds = std(u);
-%       
-% end
+
+%% Getting mean and stds
+h_range = (0:2.5:20);
+%h_range = 1;
+stds_range = zeros(2, length(h_range));
+mean_range = zeros(2, length(h_range));
+for n = 1:length(h_range)
+    
+    % update input
+    h_factor = h_range(n);
+    disp(h_factor)
+    h = ones(2,1) * h_factor;
+    
+    %get time vector
+%     count = (1:1:length(u));
+%     t = [count; u]';
+ 
+    %Generate noise vector
+    for ii = 1:length(t)-1
+        W(:,ii+1) = W(:,ii)+sqrt(exp(2*th*t(:,ii+1))-exp(2*th*t(:,ii)))*randn(2,1);
+    end
+
+    %Integrate neural system with noise forcing
+    for ii = 1: length(W)-1  
+      % Take the Euler step + x(i) which is the noise
+      u(:,ii+1) = u(:,ii) + ssn_ode(t, (u(:,ii) + x(:,ii)), h)*dt; 
+    end
+    
+     % Get mean and std
+    mean_range(:,n) = mean(u, 2);
+    stds_range(:,n)= std(u,0,2);
+    
+      
+end
+
+figure;
+plot(t, u)
+
+plot(h_range, mean_range)
+plot(h_range, stds_range)
+
 
 %% Sanity check
 % look how this works for variaous tau > when tau is really small and big

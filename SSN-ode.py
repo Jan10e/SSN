@@ -105,15 +105,13 @@ eta = sp.zeros((len(Tt), 2))
 stds = []
 mean = []
 rate = []
-#trace0 = []
-#trace2 = []
-#trace15 = []
 h_range = sp.arange(0, 20, 2.5)
+#h_range = sp.arange(1)
 for h_factor in h_range:
     
     # update input
     print(h_factor)
-    h = (sp.ones(2)*0)*h_factor
+    h = sp.ones(2)*h_factor
 
     # First generate noise vector
     eta[0, :] = eta_init
@@ -140,61 +138,61 @@ for h_factor in h_range:
     
     
     
-for h_factor in h_range:   
-    # Get rates for h=2
-    Uu2[0, :] = u_0
-    h = (sp.ones(2)*2) * h_factor
-    for iT, t in enumerate(Tt[:-1]):
-        dt = Tt[iT + 1] - Tt[iT]
-        Uu2[iT + 1, :] = euler(Uu2[iT, :], t, dt, df) + eta[iT, :]*dt/tau
-        
-    # Get the rates
-    R = Kk*ReLU(Uu2 - V_rest)**Nn   
-        
+#for h_factor in h_range:   
+#    # Get rates for h=2
+#    Uu2[0, :] = u_0
+#    h = (sp.ones(2)*2) * h_factor
+#    for iT, t in enumerate(Tt[:-1]):
+#        dt = Tt[iT + 1] - Tt[iT]
+#        Uu2[iT + 1, :] = euler(Uu2[iT, :], t, dt, df) + eta[iT, :]*dt/tau
+#        
+#    # Get the rates
+#    R = Kk*ReLU(Uu2 - V_rest)**Nn   
+#        
+#    
+#    # Get rates for h=15
+#    Uu15[0, :] = u_0
+#    h = (sp.ones(2)*15) * h_factor
+#    for iT, t in enumerate(Tt[:-1]):
+#        dt = Tt[iT + 1] - Tt[iT]
+#        Uu15[iT + 1, :] = euler(Uu2[iT, :], t, dt, df) + eta[iT, :]*dt/tau
+#        
+#    # Get the rates
+#    R = Kk*ReLU(Uu15 - V_rest)**Nn   
     
-    # Get rates for h=15
-    Uu15[0, :] = u_0
-    h = (sp.ones(2)*15) * h_factor
-    for iT, t in enumerate(Tt[:-1]):
-        dt = Tt[iT + 1] - Tt[iT]
-        Uu15[iT + 1, :] = euler(Uu2[iT, :], t, dt, df) + eta[iT, :]*dt/tau
-        
-    # Get the rates
-    R = Kk*ReLU(Uu15 - V_rest)**Nn   
-    
     
 
-plt.subplot(2,3,1)
-plt.plot(h_range, rate)
-plt.ylabel('mean rate')
-plt.xlabel('h')
-
-plt.subplot(2,3,2)
-plt.plot(h_range, mean)
-plt.ylabel('mean V_E/V_I [mV]')
-plt.xlabel('h')
-
-plt.subplot(2,3,3)
-plt.plot(h_range, stds)
-plt.ylabel('std. dev. V_E/V_I')
-plt.xlabel('h')
-
-
-
-plt.subplot(2,1,2)
-plt.plot(Uu)
-plt.ylabel('V_E/V_I [mV]')
-plt.xlabel('h')
-
-plt.subplot(2,2,2)
-plt.plot(Uu2)
-plt.ylabel('V_E/V_I [mV]')
-plt.xlabel('h')
-
-plt.subplot(2,3,2)
-plt.plot(Uu15)
-plt.ylabel('V_E/V_I [mV]')
-plt.xlabel('h')
-
-plt.show()
+#plt.subplot(2,3,1)
+#plt.plot(h_range, rate)
+#plt.ylabel('mean rate')
+#plt.xlabel('h')
+#
+#plt.subplot(2,3,2)
+#plt.plot(h_range, mean)
+#plt.ylabel('mean V_E/V_I [mV]')
+#plt.xlabel('h')
+#
+#plt.subplot(2,3,3)
+#plt.plot(h_range, stds)
+#plt.ylabel('std. dev. V_E/V_I')
+#plt.xlabel('h')
+#
+#
+#
+##plt.subplot(2,1,2)
+##plt.plot(Uu)
+##plt.ylabel('V_E/V_I [mV]')
+##plt.xlabel('h')
+##
+##plt.subplot(2,2,2)
+##plt.plot(Uu2)
+##plt.ylabel('V_E/V_I [mV]')
+##plt.xlabel('h')
+##
+##plt.subplot(2,3,2)
+##plt.plot(Uu15)
+##plt.ylabel('V_E/V_I [mV]')
+##plt.xlabel('h')
+#
+#plt.show()
         

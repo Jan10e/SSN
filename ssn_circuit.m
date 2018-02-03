@@ -30,6 +30,11 @@ plot(t, u)
 % generate vector lenght u > ode
 % add Wiener process
 
+% Membrane time constant 
+tau_E = 20/1000; %ms; 20ms for E
+tau_I = 10/1000; %ms; 10ms for I
+tau = [tau_E; tau_I];
+
 % Input noise std.
 sigma_0E = 0.2;     %mV; E cells
 sigma_0I = 0.1;     %mV; I cells
@@ -38,12 +43,12 @@ sigma_0 = [sigma_0E; sigma_0I];
 % Initialize output d\eta (W)
 W = zeros(2,length(u));
 
-
 for ii = 1:length(u)-1
-    W(:,ii+1) = W(:,ii) + (1./tau).*(-W(:,ii) *dt + (2 * tau .* sigma_0.^2).^0.5.*randn(2,1) * dt.^0.5);
+    W(:,ii+1) = W(:,ii) + (1./tau).*(-W(:,ii).*dt + (2 * tau .* sigma_0.^2).^0.5.*randn(2,1) * dt.^0.5);
 end
 
 plot(t, u+transpose(W))
+
 
 
 % Difference:
