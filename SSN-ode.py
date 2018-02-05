@@ -156,9 +156,11 @@ plt.xlabel('h')
 
 
 
-# Voltage output for h-factors 0, 2 and 15
+
+#########################################################
+######    Voltage output for h-factors 0, 2 and 15   #####
+##########################################################
 plt.figure(2)
-#h = sp.ones(2)*h_factor
 for idx, h_factor in enumerate([0, 2, 15]):
     Uu2[0,:] = u_0
 
@@ -174,8 +176,98 @@ for idx, h_factor in enumerate([0, 2, 15]):
     plt.subplot(1, 3, 1 + idx)
     plt.plot(Tt, Uu2)
     plt.ylabel('V_E/V_I [mV]')
-    plt.xlabel('Tt')
+    plt.xlabel('time')
 
 
 
 plt.show()
+
+
+
+
+
+######################################
+######    Fixed Point Analysis   #####
+######################################
+import numpy as np
+from scipy import integrate
+
+T_final2 = 10
+Tt2 = sp.arange(T_init, T_final2, dt)
+
+# integrate ode
+u_solve = integrate.odeint(df, u_0, Tt2)
+
+x, y = u_solve.T
+
+# plot dynamics and Phase space
+plt.figure(3)
+plt.subplot(1,2,1)
+plt.plot(Tt2, u_solve)
+plt.xlabel('time')
+plt.ylabel('V_E/V_I')
+plt.title('Dynamics in time')
+plt.legend(loc = 'best')
+
+plt.subplot(1,2,2)
+plt.plot(x,y, color="blue")
+plt.xlabel('V_E')               # Correct axis labels?
+plt.ylabel('V_I')
+plt.title('Phase space')
+
+plt.show()
+
+
+
+######################################
+######    Find Fixed Points   #####
+######################################
+fp = []
+
+def find_fixed_points(r):
+    for x in range(r):
+        for y in range(r):
+            if df == 0:
+                fp.append((x,y))
+                print('The system has a fixed point in %s,%s' % (x,y))
+    return fp
+
+find_fixed_points(10000)
+
+
+
+
+
+import sympy as sm
+# define the system in this way (assuming a predator-prey-system with no negative values)
+# to avoid interference x = r (for resource) and y = c (for consumer)
+v = sm.symbols('v', negative = False)
+#R = 2*r - r**2 - r*c
+#C = -c + r*c
+
+# use sympy's way of setting equations to zero
+u_equal = sm.Eq(df, 0)
+
+
+# compute fixed points
+equilibria = sm.solve(u_equal, v)
+print(equilibria)
+
+
+
+
+
+
+###################################################
+#### Calculate eigenvalues form Jacobian matrix ###
+###################################################
+
+
+
+
+
+
+
+
+
+
