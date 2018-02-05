@@ -2,10 +2,10 @@
 Simulate a E-I 2D model with supra-linear stabilization
 
 Created by Nirag Kadakia at 16:51 01-29-2018
-This work is licensed under the 
-Creative Commons Attribution-NonCommercial-ShareAlike 4.0 
-International License. 
-To view a copy of this license, visit 
+This work is licensed under the
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+International License.
+To view a copy of this license, visit
 http://creativecommons.org/licenses/by-nc-sa/4.0/.
 """
 
@@ -15,11 +15,11 @@ import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton
 from PyQt5.QtGui import QIcon
 
-import matplotlib 
+import matplotlib
 matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 
-#from PyQt5 import QtCore 
+#from PyQt5 import QtCore
 #from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 #from matplotlib.figure import Figure
 #import matplotlib.pyplot as plt
@@ -33,10 +33,10 @@ import matplotlib.pyplot as plt
 
 
 # Parameters
-Kk = 0.3 
+Kk = 0.3
 Nn = 2
 V_rest = -70.
- 
+
 # Connectivity Matrix W
 w_EE = 1.25
 w_EI = -0.65
@@ -45,8 +45,8 @@ w_II = -0.5
 Ww = sp.array([[w_EE, w_EI], [w_IE, w_II]])
 
 # Membrane time constants
-tau_E = 0.02 
-tau_I = 0.01 
+tau_E = 0.02
+tau_I = 0.01
 tau = sp.array([tau_E, tau_I])
 
 # external forcing
@@ -76,27 +76,26 @@ def ReLU(x, alpha=0):
 
 def df(u, t):
     du = ((-u + V_rest) + sp.dot(Ww, (Kk*ReLU(u - V_rest)**Nn)) + h)/tau
-    return du 
+    return du
 
 def euler(u, t, dt, df):
     return u + df(u, t)*dt
 
-    
+
 
 ##############################
 ######  Data structures  #####
 ##############################
 
-    
-    
+
+
 Tt = sp.arange(T_init, T_final, dt)
 Uu = sp.zeros((len(Tt), 2))
 Uu2 = sp.zeros((len(Tt), 2))
-Uu15 = sp.zeros((len(Tt), 2))
 eta = sp.zeros((len(Tt), 2))
-    
-    
-    
+
+
+
 ##############################
 ######    Integration    #####
 ##############################
@@ -108,10 +107,11 @@ rate = []
 h_range = sp.arange(0, 20, 2.5)
 #h_range = sp.arange(1)
 for h_factor in h_range:
-    
+
     # update input
     print(h_factor)
     h = sp.ones(2)*h_factor
+
 
     # First generate noise vector
     eta[0, :] = eta_init
@@ -127,72 +127,55 @@ for h_factor in h_range:
     for iT, t in enumerate(Tt[:-1]):
         dt = Tt[iT + 1] - Tt[iT]
         Uu[iT + 1, :] = euler(Uu[iT, :], t, dt, df) + eta[iT, :]*dt/tau
-    
+
     # Get std and mean Vm
     stds.append(sp.std(Uu, axis=0))
     mean.append(sp.mean(Uu, axis=0))
-    
-    # Get the rates
-    R = Kk*ReLU(Uu - V_rest)**Nn    
-    rate.append(sp.mean(R, axis=0))
-    
-    
-    
-#for h_factor in h_range:   
-#    # Get rates for h=2
-#    Uu2[0, :] = u_0
-#    h = (sp.ones(2)*2) * h_factor
-#    for iT, t in enumerate(Tt[:-1]):
-#        dt = Tt[iT + 1] - Tt[iT]
-#        Uu2[iT + 1, :] = euler(Uu2[iT, :], t, dt, df) + eta[iT, :]*dt/tau
-#        
-#    # Get the rates
-#    R = Kk*ReLU(Uu2 - V_rest)**Nn   
-#        
-#    
-#    # Get rates for h=15
-#    Uu15[0, :] = u_0
-#    h = (sp.ones(2)*15) * h_factor
-#    for iT, t in enumerate(Tt[:-1]):
-#        dt = Tt[iT + 1] - Tt[iT]
-#        Uu15[iT + 1, :] = euler(Uu2[iT, :], t, dt, df) + eta[iT, :]*dt/tau
-#        
-#    # Get the rates
-#    R = Kk*ReLU(Uu15 - V_rest)**Nn   
-    
-    
 
-#plt.subplot(2,3,1)
-#plt.plot(h_range, rate)
-#plt.ylabel('mean rate')
-#plt.xlabel('h')
-#
-#plt.subplot(2,3,2)
-#plt.plot(h_range, mean)
-#plt.ylabel('mean V_E/V_I [mV]')
-#plt.xlabel('h')
-#
-#plt.subplot(2,3,3)
-#plt.plot(h_range, stds)
-#plt.ylabel('std. dev. V_E/V_I')
-#plt.xlabel('h')
-#
-#
-#
-##plt.subplot(2,1,2)
-##plt.plot(Uu)
-##plt.ylabel('V_E/V_I [mV]')
-##plt.xlabel('h')
-##
-##plt.subplot(2,2,2)
-##plt.plot(Uu2)
-##plt.ylabel('V_E/V_I [mV]')
-##plt.xlabel('h')
-##
-##plt.subplot(2,3,2)
-##plt.plot(Uu15)
-##plt.ylabel('V_E/V_I [mV]')
-##plt.xlabel('h')
-#
-#plt.show()
-        
+    # Get the rates
+    R = Kk*ReLU(Uu - V_rest)**Nn
+    rate.append(sp.mean(R, axis=0))
+
+
+plt.figure(1)
+
+plt.subplot(3,1,1)
+plt.plot(h_range, rate)
+plt.ylabel('mean rate')
+plt.xlabel('h')
+
+plt.subplot(3,1,2)
+plt.plot(h_range, mean)
+plt.ylabel('mean V_E/V_I [mV]')
+plt.xlabel('h')
+
+plt.subplot(3,1,3)
+plt.plot(h_range, stds)
+plt.ylabel('std. dev. V_E/V_I')
+plt.xlabel('h')
+
+
+
+# Voltage output for h-factors 0, 2 and 15
+plt.figure(2)
+#h = sp.ones(2)*h_factor
+for idx, h_factor in enumerate([0, 2, 15]):
+    Uu2[0,:] = u_0
+
+    # update input
+    print(h_factor)
+    h = sp.ones(2)*h_factor
+    
+    for iT, t in enumerate(Tt[:-1]):
+        dt = Tt[iT + 1] - Tt[iT]
+        Uu2[iT + 1, :] = euler(Uu2[iT, :], t, dt, df) + eta[iT, :]*dt/tau
+
+
+    plt.subplot(1, 3, 1 + idx)
+    plt.plot(Tt, Uu2)
+    plt.ylabel('V_E/V_I [mV]')
+    plt.xlabel('Tt')
+
+
+
+plt.show()
