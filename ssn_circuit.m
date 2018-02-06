@@ -5,26 +5,32 @@
 %                          to give rise to stimulus dependent patterns of response variability.
 % model:              stabilized supralinear network model (which is a reduced rate model)    
 
-%% SSN ODE (without noise term)
+%% Solve SSN ODE (without noise term) 
 % 1.) open ReLU.m and ssn_ode.m function files
 % 2.) define parameters
 
 % Vm for neuron E and I
-u_0 = [-80; 60]; %-80 for E, 60 for I
-%u_0 = ones(2,1);
+%u_0 = [-80; 60]; %-80 for E, 60 for I
+u_0 = ones(2,1);           % set initial condition to 1 to calculate trajectory
 
 % Time vector
-tspan = (0:0.03:5);
-%tspan = [0 5];
+tspan = (0:0.003:5);
 
-% 3.) use ode45 solver
+
+% 3.) use ode45 to numerical solve eq using Runge-Kutta 4th/5th order
 [t, u] = ode45(@ssn_ode, tspan, u_0);
 
 figure;
 plot(t, u)
 
-% 3.) now solve ODE numerical using Euler method
-%clear all, close all
+x = u(1,:);
+y = u(2,:);
+
+
+
+%% Find Fixed Points
+
+
 
 %% SSN with UOP process for every dt
 % generate vector lenght u > ode
