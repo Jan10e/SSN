@@ -27,7 +27,6 @@ x = u(1,:);
 y = u(2,:);
 
 
-
 %% Find Fixed Points
 
 
