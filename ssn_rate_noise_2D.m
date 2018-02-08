@@ -8,46 +8,38 @@
 
 
 %% Parameters
-k = 0.01; %scaling constant 
-n = 2.2;
+k = 0.3; %scaling constant 
+n = 2;
 
-% Connectivity Matrix W as in Kuchibotla, Miller & Froemke
-w_EE = .017; w_EP = -.956; w_EV = -.045; w_ES = -.512;
-w_PE = .8535; w_PP = -.99; w_PV = -.09; w_PS = -.307;
-w_VE = 2.104; w_VP = -.184; w_VV = 0; w_VS = -.734;
-w_SE = 1.285; w_SP = 0; w_SV = -.14; w_SS = 0;
-
-W = [w_EE w_EP w_EV w_ES;
-    w_PE w_PP w_PV w_PS;
-    w_VE w_VP w_VV w_VS;
-    w_SE w_SP w_SV w_SS];
+% Connectivity Matrix W as in Hennequin
+w_EE = 1.25;
+w_EI = -0.65;
+w_IE = 1.2;
+w_II = -0.5;
+W = [w_EE w_EI; w_IE w_II];
 
 
 % Membrane time constant 
-tau_E = 20/1000; %ms; 20ms for E
-tau_P = 10/1000; %ms; 10ms for all PV
-tau_S = 10/1000; %ms; 10ms for all SOM
-tau_V = 10/1000; %ms; 10ms for all VIP
-tau = [tau_E; tau_P; tau_S; tau_V];
+tau_E = 20/1000;                   %ms; 20ms for E
+tau_I = 10/1000;                    %ms; 10ms for I
+tau = [tau_E; tau_I];
 
 % Time vector
 dt = 1e-3;
 t = 0:dt:100;
 
-% Parameters - Noise process is Ornstein-Uhlenbeck
+% Noise process is Ornstein-Uhlenbeck
 tau_noise = 50/1000; 
 sigma_0E = 0.2;                      %mV; E cells
-sigma_0P = 0.1;                       %mV; P cells
-sigma_0S = 0.1;                       %mV; S cells
-sigma_0V = 0.1;                       %mV; V cells
-sigma_0 = [sigma_0E; sigma_0P; sigma_0S; sigma_0V]; %input noise std
+sigma_0I = 0.1;                       %mV; I cells
+sigma_0 = [sigma_0E; sigma_0I]; %input noise std
 sigma_a = sigma_0.*sqrt(1 + (tau./tau_noise));
-eta = zeros(4,length(t));        % Allocate integrated eta vector
+eta = zeros(2,length(t));        % Allocate integrated eta vector
 
 % Parameters - ODE: initial 
-%u_0 = [-80; -60; -60; -60];                   % Vm for neuron (-80 for E, 60 for I)
-u_0 = ones(4,1);  
-u = zeros(4,length(eta));
+%u_0 = [-80; -60];                   % Vm for neuron (-80 for E, 60 for I)
+u_0 = ones(2,1);  
+u = zeros(2,length(eta));
 u(:,1) = u_0;
 
 
@@ -61,19 +53,19 @@ ode_rate = @(t, u, h)  (-u + k.*ReLU(W *u + h).^n)./tau;
 
 h_range = (0:2.5:20);
 %h_range = 0:1;         %to check for dynamics for no input
-stds_range = zeros(4, length(h_range));
-mean_range = zeros(4, length(h_range));
+stds_range = zeros(2, length(h_range));
+mean_range = zeros(2, length(h_range));
 for nn = 1:length(h_range)
     
     % update input
     h_factor = h_range(nn);
     disp(h_factor)
-    h = ones(4,1) * h_factor;
+    h = ones(2,1) * h_factor;
     
 
     %Generate noise vector
     for ii = 1:length(t)-1
-        eta(:,ii+1) = eta(:,ii) + (-eta(:,ii) *dt + sqrt(2 .*dt*tau_noise*sigma_a.^2).*(randn(4,1))) *(1./tau_noise);
+        eta(:,ii+1) = eta(:,ii) + (-eta(:,ii) *dt + sqrt(2 .*dt*tau_noise*sigma_a.^2).*(randn(2,1))) *(1./tau_noise);
     end
     
 
