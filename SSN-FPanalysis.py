@@ -115,16 +115,21 @@ plt.show()
 
 # Loop over initial values and sol for different guesses
 fix_pts = sp.zeros((1000, 2))
+sol = sp.zeros((2))
 for idx in range(100):
     sp.random.seed(idx)
-    guess = sp.random.uniform(-200, 200, 2) #automatically generates 2D array
+    guess = sp.random.uniform(-100, 100, 2) #automatically generates 2D array
     
-    sol = broyden1(df_sol, guess, verbose = 0, maxiter = 100)
+    try:
+        sol = broyden1(df_sol, guess, verbose = 1, maxiter = 1000)
+    except:
+        pass
     
     
     fix_pts[idx,:] = sol 
     print(sol)    
 
+plt.figure(2)
 plt.scatter(fix_pts[:,0], fix_pts[:,1]) #first axis is v_E, second axis is v_I
 plt.show
 
