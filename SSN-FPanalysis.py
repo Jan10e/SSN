@@ -45,7 +45,7 @@ tau_I = 0.01
 tau = sp.array([tau_E, tau_I])
 
 # external forcing
-h = sp.ones(2)*0
+h = sp.ones(2)*2
 
 # initial and time vector
 u_0 = sp.array([-60, -80])
@@ -113,6 +113,16 @@ plt.show()
 ######    Non-linear solver using Broyden's First Jacobian approx  #####
 ########################################################################
 
+# For single initial points
+u_E, u_I = -60., -80.
+
+guess = sp.array([u_E, u_I])
+sol = broyden1(df_sol, guess, verbose=1)
+
+print(sol)
+
+
+
 # Loop over initial values and sol for different guesses
 fix_pts = sp.zeros((1000, 2))
 sol = sp.zeros((2))
@@ -133,26 +143,33 @@ plt.figure(2)
 plt.scatter(fix_pts[:,0], fix_pts[:,1]) #first axis is v_E, second axis is v_I
 plt.show
 
-
-
-
-u_E, u_I = -60., -80.
-
-guess = sp.array([u_E, u_I])
-sol = broyden1(df_sol, guess, verbose=1)
-
-print(sol)
-# add scatter plot
-
-
-
-#increase h to see whether fixed points are the ssame
-# look ate different fixed point in scatterplot for different h
-
-
+#look at different fixed point in scatterplot for different h
+# h = 0 gives fixed points (0,0) and (-70, -70)
+# h = 2 gives fixed points (0,0) and (-66, -66)
+# h = 15 gives fixed points (0,0) and (-64, -59)
 
 
 
 ###################################################
-#### Calculate eigenvalues form Jacobian matrix ###
+#### Calculate eigenvalues from Jacobian matrix ###
 ###################################################
+# to look whether the fixed points are stable or unstable
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
