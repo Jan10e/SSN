@@ -115,6 +115,9 @@ for m = 1:length(h_range)
     
     subplot(1, 3, m)
     plot(t, u)
+    ylabel("rate")
+    xlabel("time")
+    legend("E", "P", "V", "S")
 
 end
 
