@@ -150,6 +150,27 @@ plt.show
 
 
 
+seeds = range(0,10)
+fix_pts = sp.zeros((10, 2))
+for idx in seeds:
+    sp.random.seed(idx)
+    while True:
+        try:
+            guess = sp.random.uniform(-100, 100, 2)
+            sol = broyden1(df_sol, guess, verbose = 1, maxiter = 100)
+        except:
+            continue 
+        else: 
+            fix_pts[idx,:] = sol 
+            print(sol) 
+            break
+            
+
+plt.figure(2)
+plt.scatter(fix_pts[:,0], fix_pts[:,1]) #first axis is v_E, second axis is v_I
+plt.show
+
+
 ###################################################
 #### Calculate eigenvalues from Jacobian matrix ###
 ###################################################
