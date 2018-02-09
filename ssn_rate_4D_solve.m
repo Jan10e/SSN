@@ -33,7 +33,8 @@ tau = [tau_E; tau_P; tau_S; tau_V];
 
 
 % Input
-Hh = zeros(4,1);              %input; no input = 0; somewhat larger input = 2; large input = 15
+%Hh = ones(4,1);              %input; no input = 0; somewhat larger input = 2; large input = 15
+Hh = [0; 15; 0; 0];             %E, P, V, S
 
 %% Functions
 
@@ -51,7 +52,25 @@ tspan = (0:0.003:5);
 [t, u] = ode45(ode_rate2, tspan, Uu_0);
 
 figure;
-plot(t, u)
+plot(t, u, 'Linewidth', 2)
 ylabel("rate")
 xlabel("time")
 legend("E", "P", "V", "S")
+
+
+%% Different h input
+
+% h = 0 for all: shows that all rates go from 1 to 0 within 0.1ms (E a bit
+% later) // (same as ssn_noise_4D.m)
+
+% h = 1 for all: rates of I's go from 1 to 0.01 in 0.05ms; for E go from 1 to
+% 0.01 in 0.1ms // (same as ssn_noise_4D.m)
+
+% h_E = 15 (all h_Is = 0): E (rate = 3.7);  P (rate = 0.1); V (rate = 0.8); S (rate = 0.2)// (different compared to ssn_noise_4D.m)
+
+% h_V = 15 (all other h = 0): E (rate = goes to 0 bit later);  P (rate = to 0 fast); V (rate = 4); S (rate = to 0 fast)// (different compared to ssn_noise_4D.m)
+
+% h_P = 15 (all h_Is = 0): E (rate = goes to 0 bit later);  P (rate = 2.5); V (rate = to 0 fast); S (rate = to 0 fast)// (different compared to ssn_noise_4D.m)
+
+
+

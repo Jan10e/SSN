@@ -109,3 +109,46 @@ legend("E", "P", "V", "S")
 
 %% Sanity check
 % look how this works for variaous tau > when tau is really small and big
+
+% small tau (1/1000) doesn't affect the ode too much, however changing it
+% to a really big tau (100000/1000) affects all cells, with S least
+% affected
+
+%% Recreate fig 7c of Kuchibotla
+% create separate input to cells and look at change from baseline (h = 0)
+
+figure;
+%h_range = [0, 2, 15];
+h_range = [0; 15; 0; 0]; %E, P, V, S
+for m = 1:length(h_range)
+    
+    % update input
+    h_factor = h_range(m);
+    disp(h_factor)
+    h = ones(4,1) * h_factor;
+    
+
+    %Integrate neural system with noise forcing
+    for ii = 1: length(eta)-1  
+      % Take the Euler step + x(i) which is the noise
+      u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + (eta(:,ii)*0) * dt./tau;  %first try without noise (eta * 0)
+    end
+    
+    subplot(1, 4, m)
+    plot(t, u, 'LineWidth',2)
+    ylabel("rate")
+    xlabel("time")
+    legend("E", "P", "V", "S")
+
+end
+
+% h = 0 for all: shows that all rates go from 1 to 0 within 0.1ms (E a bit later)
+
+% h = 1 for all: rates of I's go from 1 to 0.01 in 0.05ms; for E go from 1 to
+% 0.01 in 0.1ms
+
+% h_E = 15 (all other h = 0): E (rate =~1.6);  P (rate = ~ 2.5); V (rate = ~ 3.5); S (rate = 4.8)// (different compared to ssn_noise_4D.m)
+
+% h_V = 15 (all other h = 0): E (rate = 1.6);  P (rate = ~ 2.5); V (rate = ~ 3.5); S (rate = 4.8)// (different compared to ssn_noise_4D.m; also similar to h_E only (which is postulated by Kuchibotla that h_E only and h_V is the same))
+
+% h_P = 15: same as h_E and h_V
