@@ -45,7 +45,7 @@ tau_I = 0.01
 tau = sp.array([tau_E, tau_I])
 
 # external forcing
-h = sp.ones(2)*2
+h = sp.ones(2)*0
 
 # initial and time vector
 u_0 = sp.array([-60, -80])
@@ -123,33 +123,8 @@ print(sol)
 
 
 
+
 # Loop over initial values and sol for different guesses
-fix_pts = sp.zeros((1000, 2))
-sol = sp.zeros((2))
-for idx in range(100):
-    sp.random.seed(idx)
-    guess = sp.random.uniform(-100, 100, 2) #automatically generates 2D array
-    
-    try:
-        sol = broyden1(df_sol, guess, verbose = 1, maxiter = 1000)
-    except:
-        pass
-    
-    
-    fix_pts[idx,:] = sol 
-    print(sol)    
-
-plt.figure(2)
-plt.scatter(fix_pts[:,0], fix_pts[:,1]) #first axis is v_E, second axis is v_I
-plt.show
-
-#look at different fixed point in scatterplot for different h
-# h = 0 gives fixed points (0,0) and (-70, -70)
-# h = 2 gives fixed points (0,0) and (-66, -66)
-# h = 15 gives fixed points (0,0) and (-64, -59)
-
-
-
 seeds = range(0,10)
 fix_pts = sp.zeros((10, 2))
 for idx in seeds:
@@ -171,26 +146,87 @@ plt.scatter(fix_pts[:,0], fix_pts[:,1]) #first axis is v_E, second axis is v_I
 plt.show
 
 
+#look at different fixed point in scatterplot for different h
+# h = 0 gives fixed point (-70, -70)
+# h = 2 gives fixed points (-66, -66)
+# h = 15 gives fixed point (-64, -59)
+
+
+
 ###################################################
-#### Calculate eigenvalues from Jacobian matrix ###
+#### Approximate eigenvalues from Jacobian matrix ###
 ###################################################
 # to look whether the fixed points are stable or unstable
+from scipy.optimize import fsolve
+
+
+guess = sp.random.uniform(-100, 100, 2)
+
+#Get Jacobian approximate
+x, infodict, ier, mesg = fsolve(df_sol, guess, full_output = True)
+
+print(x)
+print(infodict.keys())
+
+# Get the Jacobian by matrix multiplication
+Q = infodict['fjac']
+r = infodict['r']
+R = sp.array([[r[0], r[1]], [0, r[2]]])
+J = sp.dot(Q,R)
+
+# Get eigenvalues from Jacobian
+eigJ = sp.linalg.eig(J)
+eig_val = eigJ[0]
+eig_vec = eigJ[1]
+
+#eigenvalues are both negative, therefore fixed point (-70 for h=0) is attractive and 
+#a stable fixed point
 
 
 
+###########################################################
+######     Algorithmically solving for eigenvalues    #####
+###########################################################
 
+def dFE_dVE(V0):
+    VE = V0[0]
+    VI = V0[1]
+    dJ1 = (-1 + w_EE * 2 * (VE - V_rest))/tau_E
+    return dJ1
 
+def dFE_dVI(V0):
+    VE = V0[0]
+    VI = V0[1]
+    dJ2 = (w_EI * 2 * (VE - V_rest))/tau_E
+    return dJ2    
 
+def dFI_dVE(V0):
+    VE = V0[0]
+    VI = V0[1]
+    dJ3 = (w_IE * 2 * (VI - V_rest))/tau_I
+    return dJ3 
 
+def dFI_dVI(V0):
+    VE = V0[0]
+    VI = V0[1]
+    dJ4 = (-1 + w_II * 2 * (VI - V_rest))/tau_I
+    return dJ4 
 
+# input V_0, which is fixed point
+V0 = fix_pts[0,:] 
 
+# Jacobian
+Jb = sp.array([[dFE_dVE(V0), dFE_dVI(V0)],[dFI_dVE(V0), dFI_dVI(V0)]])
 
+# Get eigenvalues from Jacobian
+eigJb = sp.linalg.eig(Jb)
+eig_val_Jb = eigJb[0]
+eig_vec_Jb = eigJb[1]
 
+#comparable results with approximate for eignevalues: matrix is [[-1, 0], [0, -1]]
 
-
-
-
-
+#eigenvalues are both negative, therefore fixed point (-70 for h=0) is attractive and 
+#a stable fixed point
 
 
 
