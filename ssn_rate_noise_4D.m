@@ -26,21 +26,21 @@ W = [w_EE w_EP w_EV w_ES;
 % Membrane time constant 
 tau_E = 20/1000; %ms; 20ms for E
 tau_P = 10/1000; %ms; 10ms for all PV
-tau_S = 10/1000; %ms; 10ms for all SOM
 tau_V = 10/1000; %ms; 10ms for all VIP
-tau = [tau_E; tau_P; tau_S; tau_V];
+tau_S = 10/1000; %ms; 10ms for all SOM
+tau = [tau_E; tau_P; tau_V; tau_S];
 
 % Time vector
-dt = 1e-3;
-t = 0:dt:100;
+dt = 1e-4;
+t = 0:dt:5;
 
 % Parameters - Noise process is Ornstein-Uhlenbeck
 tau_noise = 50/1000; 
 sigma_0E = 0.2;                      %mV; E cells
 sigma_0P = 0.1;                       %mV; P cells
-sigma_0S = 0.1;                       %mV; S cells
 sigma_0V = 0.1;                       %mV; V cells
-sigma_0 = [sigma_0E; sigma_0P; sigma_0S; sigma_0V]; %input noise std
+sigma_0S = 0.1;                       %mV; S cells
+sigma_0 = [sigma_0E; sigma_0P; sigma_0V; sigma_0S]; %input noise std
 sigma_a = sigma_0.*sqrt(1 + (tau./tau_noise));
 eta = zeros(4,length(t));        % Allocate integrated eta vector
 
@@ -117,38 +117,82 @@ legend("E", "P", "V", "S")
 %% Recreate fig 7c of Kuchibotla
 % create separate input to cells and look at change from baseline (h = 0)
 
-figure;
-%h_range = [0, 2, 15];
-h_range = [0; 15; 0; 0]; %E, P, V, S
+h_range = [15; 5; 0; 0]; %E, P, V, S
 for m = 1:length(h_range)
     
     % update input
     h_factor = h_range(m);
     disp(h_factor)
-    h = ones(4,1) * h_factor;
-    
+    h = h_range;
 
     %Integrate neural system with noise forcing
     for ii = 1: length(eta)-1  
       % Take the Euler step + x(i) which is the noise
       u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + (eta(:,ii)*0) * dt./tau;  %first try without noise (eta * 0)
     end
-    
-    subplot(1, 4, m)
-    plot(t, u, 'LineWidth',2)
-    ylabel("rate")
-    xlabel("time")
-    legend("E", "P", "V", "S")
+
 
 end
 
-% h = 0 for all: shows that all rates go from 1 to 0 within 0.1ms (E a bit later)
 
-% h = 1 for all: rates of I's go from 1 to 0.01 in 0.05ms; for E go from 1 to
-% 0.01 in 0.1ms
+figure;
+plot(t, u, 'LineWidth',2)
+ylabel("rate")
+xlabel("time")
+legend("E", "P", "V", "S")
 
-% h_E = 15 (all other h = 0): E (rate =~1.6);  P (rate = ~ 2.5); V (rate = ~ 3.5); S (rate = 4.8)// (different compared to ssn_noise_4D.m)
+% h = 0 for all: shows that all rates go from 1 to 0 within 0.1ms (E is a bit slower)
 
-% h_V = 15 (all other h = 0): E (rate = 1.6);  P (rate = ~ 2.5); V (rate = ~ 3.5); S (rate = 4.8)// (different compared to ssn_noise_4D.m; also similar to h_E only (which is postulated by Kuchibotla that h_E only and h_V is the same))
+%% Passive vs Active
 
-% h_P = 15: same as h_E and h_V
+% passive state is stimulus only. As discussed with Yashar, stimulus only
+% is h input to E and PV cells, although h does not have to be similar,
+% i.e. h = 15 for E and h = 2-15 for PV cells
+
+% % run script with h = 15 for E cells and h = 5 for PV
+u_passive = u;
+
+% active state is attentive state, which means that only E get h input. Set
+% h=15 for E
+
+% run script with h = 15 only for E cells
+u_active = u;
+
+
+
+%% Modulation index 
+
+% values from Kuchibhotla fig 3.
+E_pass = 67;
+E_act = 33;
+P_pass = 39;
+P_act = 61;
+V_pass = 78;
+V_act = 22;
+S_pass = 40;
+S_act = 60;
+
+val = [E_pass E_act;
+P_pass P_act;
+V_pass V_act;
+S_pass S_act;];
+
+mod = zeros(length(val),1);
+for n = 1:length(val)
+    mod(n) = (val(n,2) - val(n,1))/val(n,2);
+end
+
+
+%values obtained with simulation 
+act_mean = mean(u_active, 2);
+pas_mean = mean(u_passive, 2);
+
+val_sim = [pas_mean act_mean];
+
+mod_sim = zeros(length(val_sim),1);
+for m = 1:length(val)
+    mod_sim(m) = (val_sim(m,2) - val_sim(m,1))/val_sim(m,2);
+end
+
+
+
