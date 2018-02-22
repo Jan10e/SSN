@@ -134,16 +134,14 @@ h = [0; 0; 0; 0];
 u0array = repmat([-150:20:100],4,1);
 uarray = zeros(length(u0array),length(tpositions),4);
 
-%u = zeros(4, length(tpositions));
-
 for jj=1:length(u0array)
-    u(1) = u0array(:,jj); % starting position for u; updates each time
+    u(1) = u0array(jj,:); % starting position for u; updates each time
 
     for ii=2:length(tpositions)
-        u(:,ii) = u(:,ii-1) + ode_rate(tpositions(ii), (u(:,ii-1)), h) *dt + (eta(:,ii-1)*0) * dt./tau;
+        u(:,ii + 1) = u(:,ii) + ode_rate(tpositions(ii), (u(:,ii)), h) *dt + (eta(:,ii)*0) * dt./tau;
         %urow(:,ii) = u(ii);
     end
-    uarray(jj,:) = u; % store each one for plotting later
+    %uarray(jj,:,:) = urow(jj,:); % store each one for plotting later
     
 end
 

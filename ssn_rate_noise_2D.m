@@ -51,7 +51,7 @@ ode_rate = @(t, u, h)  (-u + k.*ReLU(W *u + h).^n)./tau;
 
 %% Generate a graph of fluctuations versus input (noise can be excluded; line 101)
 
-h_range = (0:2.5:20);
+h_range = (0:1.0:100);
 %h_range = 0:1;         %to check for dynamics for no input
 stds_range = zeros(2, length(h_range));
 mean_range = zeros(2, length(h_range));
@@ -88,7 +88,7 @@ plot(h_range, mean_range)
 title("mean rate")
 ylabel("rate")
 xlabel("h")
-legend("E", "P", "V", "S")
+legend("E", "I")
 
 
 subplot(1,2,2)
@@ -96,7 +96,7 @@ plot(h_range, stds_range)
 title("std dev. rate")
 ylabel("rate")
 xlabel("h")
-legend("E", "P", "V", "S")
+legend("E", "I")
 
 
 %% Sanity check

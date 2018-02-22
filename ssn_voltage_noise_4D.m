@@ -95,22 +95,25 @@ end
 
 figure;
 subplot(1,3,1)
-plot(h_range, rate)
+plot(h_range, rate, 'Linewidth', 2)
 title("mean rate")
 ylabel("rate")
 xlabel("h")
+legend("E", "P", "V", "S")
 
 subplot(1,3,2)
-plot(h_range, mean_range)
+plot(h_range, mean_range, 'Linewidth', 2)
 title("mean V_E/V_I (mV)")
 ylabel("mV")
 xlabel("h")
+legend("E", "P", "V", "S")
 
 subplot(1,3,3)
-plot(h_range, stds_range)
+plot(h_range, stds_range, 'Linewidth', 2)
 title("std dev. V_E/V_I")
 ylabel("mV")
 xlabel("h")
+legend("E", "P", "V", "S")
 
 
 %% Voltage output for h is 0, 2, 15
@@ -132,6 +135,9 @@ for m = 1:length(h_range)
     
     subplot(1, 3, m)
     plot(t, u)
+    ylabel("voltage")
+    xlabel("time")
+    legend("E", "P", "V", "S")
 
 end
 

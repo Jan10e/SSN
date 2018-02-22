@@ -48,9 +48,9 @@ ode_rate2 = @(t, u, param)  (-u + param.k.*ReLU(param.W *u + param.Hh).^param.n)
 
 Uu_0 = ones(4,1);           % set initial condition to 1 to calculate trajectory
 
-dt = 0.003; %3 ms
+dt = 0.003; %0.1; % 0.1 minutes
 T0 = 0; % initial time
-Tf = 0.5; %1 = 1s; final time 
+Tf = 1; % final time = 100 minutes
 tpositions = T0:dt:Tf;
 
 % use ode45 to numerical solve eq using Runge-Kutta 4th/5th order (variable step sizes)
@@ -67,11 +67,11 @@ ylabel("rate - ode45 response")
 legend("E", "P", "V", "S")
 %subplot(2,1,2)
 %plot(tpositions, ui, '-.')
-xlabel("time (s)")
+xlabel("time (ms)")
 %ylabel("Interpolation response")
 legend("E", "P", "V", "S")
 
-%saveas(gcf,'4Drate_solve.png')
+saveas(gcf,'4Drate_solve.png')
 
 %% Look at many starting positions
 Tf = 0.5; % final time = 100 minutes
@@ -100,17 +100,16 @@ xlabel('time');
 legend(strcat('start =', num2str(x0array(1,:)')))
 title( "P")
 subplot(1,4,3)
-plot(tpositions,xarray(:,:,3), 'Linewidth', 1.5);
+plot(tpositions,xarray(:,:,1), 'Linewidth', 1.5);
 xlabel('time');
 legend(strcat('start =', num2str(x0array(1,:)')))
 title("V")
 subplot(1,4,4)
-plot(tpositions,xarray(:,:,4), 'Linewidth', 1.5);
+plot(tpositions,xarray(:,:,1), 'Linewidth', 1.5);
 xlabel('time');
 legend(strcat('start =', num2str(x0array(1,:)')))
 title("S")
 
-saveas(gcf,'4D_startpos.png')
 
 %% Look at many h input
 

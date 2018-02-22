@@ -61,7 +61,7 @@ tau_V = 0.01
 tau = sp.array([tau_E, tau_P, tau_S, tau_V])
 
 # external forcing
-h = sp.ones(4)*15
+h = sp.ones(4)*0
 
 # initial and time vector
 u_0 = sp.array([-80, -60, -60, -60])
@@ -117,7 +117,7 @@ for idx in seeds:
     while True:
         try:
             guess = sp.random.uniform(-100, 100, 4)
-            sol = broyden1(df_sol, guess, verbose = 1, maxiter = 100)
+            sol = broyden1(df_sol, guess, verbose = 0, maxiter = 100)
         except:
             continue 
         else: 

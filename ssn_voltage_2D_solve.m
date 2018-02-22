@@ -6,29 +6,72 @@
 % model:              stabilized supralinear network model (which is a reduced rate model)    
 
 %% Solve SSN ODE (without noise term) 
-% 1.) open ReLU.m and ssn_ode.m function files
-% 2.) define parameters
+% open ReLU.m and ssn_ode.m function files
 
-% Vm for neuron E and I
+% Time vector
+dt = 0.003;
+T0 = 0;
+Tf = 0.5; % 5 minutes
+tspan = [T0:dt:Tf];
+
 %u_0 = [-80; 60]; %-80 for E, 60 for I
 u_0 = ones(2,1);           % set initial condition to 1 to calculate trajectory
 
-% Time vector
-tspan = (0:0.003:5);
 
+%use ode45 to numerical solve eq using Runge-Kutta 4th/5th order
+[tout, u] = ode45(@ssn_voltage_ode, tspan, u_0);
 
-% 3.) use ode45 to numerical solve eq using Runge-Kutta 4th/5th order
-[t, u] = ode45(@ssn_voltage_ode, tspan, u_0);
+% like uniform step sizes: interpolate the result
+ui = interp1(tout,u,tspan);
 
-figure;
-plot(t, u)
 
 x = u(1,:);
 y = u(2,:);
 
+figure(1);
+%subplot(2,1,1)
+plot(tout, u, 'Linewidth', 1.5)
+ylabel("voltage - ode45 response")
+%legend("E", "I")
+%subplot(2,1,2)
+%plot(tspan, ui, '-.', 'Linewidth', 1.5)
+xlabel("time")
+%ylabel("Interpolation response")
+title("Time traces of response")
+legend("E", "I")
 
-%% Find Fixed Points
 
+%% Look at many starting positions
+x0array = [-100:2:100];
+xarray = zeros(length(x0array),length(tspan));
+
+for jj = 1:length(x0array)
+        [tout,u] = ode45(@ssn_voltage_ode, tspan, x0array(jj));
+        xarray(jj,:) = interp1(tout,u,tspan); % store each one for plotting later
+end
+
+figure(2);
+plot(tpositions,xarray, 'Linewidth', 1.5);
+xlabel('time (minutes)');
+ylabel('rate');
+legend("E", "P", "V", "S")
+title('rate over time; different starting points');
+
+
+%% Family of curves for different starting points
+y0array = rand(2,10)*200-100; % start them randomly between -5 and 5 in both dimensions
+% yarray = zeros(size(y0,2),length(tpositions));
+
+for ii=1:10
+    y0=y0array(:,ii);
+    
+    [tout,yout] = ode45(@ssn_voltage_ode, tspan, y0);
+   
+    figure(3);
+    hold all;
+    plot(yout(:,1),yout(:,2));
+    
+end
 
 
 %% SSN with UOP process for every dt
