@@ -45,7 +45,7 @@ tau_I = 0.01
 tau = sp.array([tau_E, tau_I])
 
 # external forcing
-h = sp.ones(2)*0
+h = sp.ones(2)*15
 
 # initial and time vector
 u_0 = sp.array([-60, -80])
@@ -132,7 +132,7 @@ for idx in seeds:
     while True:
         try:
             guess = sp.random.uniform(-100, 100, 2)
-            sol = broyden1(df_sol, guess, verbose = 1, maxiter = 100)
+            sol = broyden1(df_sol, guess, verbose = 0, maxiter = 100)
         except:
             continue 
         else: 
@@ -143,6 +143,8 @@ for idx in seeds:
 
 plt.figure(2)
 plt.scatter(fix_pts[:,0], fix_pts[:,1]) #first axis is v_E, second axis is v_I
+#plt.ylim([-80, -60])
+#plt.xlim([-80, -60])
 plt.show
 
 
@@ -171,7 +173,7 @@ print(infodict.keys())
 # Get the Jacobian by matrix multiplication
 Q = infodict['fjac']
 r = infodict['r']
-R = sp.array([[r[0], r[1]], [0, r[2]]])
+R = sp.array([[r[0], r[1]], [0, r[2]]]).T
 J = sp.dot(Q,R)
 
 # Get eigenvalues from Jacobian

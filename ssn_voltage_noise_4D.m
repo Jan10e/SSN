@@ -57,7 +57,7 @@ ode = @(t, u, h)  ((-u + V_rest) + W*(k.*ReLU(u - V_rest).^n) + h)./tau;
 
 %% Generate a graph of fluctuations versus input
 
-h_range = (0:2.5:20);
+h_range = (0:0.5:20);
 %h_range = 0:1;         %to check for dynamics for no input
 stds_range = zeros(4, length(h_range));
 mean_range = zeros(4, length(h_range));
@@ -97,7 +97,7 @@ figure;
 subplot(1,3,1)
 plot(h_range, rate, 'Linewidth', 2)
 title("mean rate")
-ylabel("rate")
+ylabel("rate")  
 xlabel("h")
 legend("E", "P", "V", "S")
 

@@ -176,7 +176,7 @@ r = infodict['r']
 R = sp.array([[r[0], r[1], r[2], r[3]], 
               [0, r[4], r[5], r[6]],
               [0, 0, r[7], r[8]],
-              [0, 0, 0, r[9]]])
+              [0, 0, 0, r[9]]]).T
 J = sp.dot(Q,R)
 
 # Get eigenvalues from Jacobian

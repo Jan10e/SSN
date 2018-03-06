@@ -4,12 +4,11 @@
 %                          We focused on analysing how the intrinsic dynamics of the network shaped external noise
 %                          to give rise to stimulus dependent patterns of response variability.
 % model:              stabilized supralinear network model (which is a reduced rate model)    
-
 %% Solve SSN ODE (without noise term) 
 % open ReLU.m and ssn_ode.m function files
 
 % Time vector
-dt = 0.003;
+dt = 0.00003;
 T0 = 0;
 Tf = 0.5; % 5 minutes
 tspan = [T0:dt:Tf];
@@ -23,7 +22,6 @@ u_0 = ones(2,1);           % set initial condition to 1 to calculate trajectory
 
 % like uniform step sizes: interpolate the result
 ui = interp1(tout,u,tspan);
-
 
 x = u(1,:);
 y = u(2,:);
@@ -39,39 +37,6 @@ xlabel("time")
 %ylabel("Interpolation response")
 title("Time traces of response")
 legend("E", "I")
-
-
-%% Look at many starting positions
-x0array = [-100:2:100];
-xarray = zeros(length(x0array),length(tspan));
-
-for jj = 1:length(x0array)
-        [tout,u] = ode45(@ssn_voltage_ode, tspan, x0array(jj));
-        xarray(jj,:) = interp1(tout,u,tspan); % store each one for plotting later
-end
-
-figure(2);
-plot(tpositions,xarray, 'Linewidth', 1.5);
-xlabel('time (minutes)');
-ylabel('rate');
-legend("E", "P", "V", "S")
-title('rate over time; different starting points');
-
-
-%% Family of curves for different starting points
-y0array = rand(2,10)*200-100; % start them randomly between -5 and 5 in both dimensions
-% yarray = zeros(size(y0,2),length(tpositions));
-
-for ii=1:10
-    y0=y0array(:,ii);
-    
-    [tout,yout] = ode45(@ssn_voltage_ode, tspan, y0);
-   
-    figure(3);
-    hold all;
-    plot(yout(:,1),yout(:,2));
-    
-end
 
 
 %% SSN with UOP process for every dt
@@ -95,5 +60,111 @@ for ii = 1:length(u)-1
     W(:,ii+1) = W(:,ii) + (1./tau).*(-W(:,ii).*dt + (2 * tau .* sigma_0.^2).^0.5.*randn(2,1) * dt.^0.5);
 end
 
-plot(t, u+transpose(W))
+figure(2);
+plot(tspan, u+transpose(W), 'Linewidth', 1.5)
+ylabel("voltage - ode45 response")
+xlabel("time")
+title("Time traces of response with noise")
+legend("E", "I")
 
+
+%% H-range values and examine the time traces
+% At what h value does the fixed point change?
+h_range = (0:0.5:20);
+
+figure; hold on;
+for ii=1:length(h_range)
+    
+    % update input
+    h_factor = h_range(ii);
+    disp(h_factor)
+    h = ones(2,1) * h_factor;
+    
+    u(1) = 0.1; % starting position for x
+    
+    %Integrate neural system with noise forcing
+    for ii=2:length(tspan)
+        u(ii) = u(ii-1) + dt*ssn_voltage_ode(tspan(ii),u(ii-1));
+    end
+    plot(tspan,u,'r-');
+    
+    
+end
+xlabel('Time (seconds)');   
+ylabel('Voltage');
+title('Voltage over time');
+
+
+
+%% Look at many starting positions
+Tf = 0.25; % 5 minutes
+tspan = [T0:dt:Tf];
+
+u0array = repmat([-150:20:100], 2,1);
+uarray = zeros(length(u0array),length(tspan), 2);
+
+% figure(3);
+% for jj = 1:length(u0array)
+%         [tout,u] = ode45(@(t,u) ssn_voltage_ode(t,u), tspan, u0array(:,jj));
+%         plot(tspan, u, 'Linewidth', 1.5);
+%         hold on
+% end
+% %uarray = interp2(u); % store each one for plotting later
+% 
+% xlabel('time (minutes)');
+% ylabel('rate');
+% %legend("E", "I")
+% title('rate over time; different starting points');
+
+
+for jj = 1:length(u0array)
+        [tout,u] = ode45(@(t,u) ssn_voltage_ode(t,u), [T0 Tf], u0array(:,jj));
+        uarray(jj,:,:) = interp1(tout,u,tspan); % store each one for plotting later
+end
+
+% plot rate over time; different starting points'
+figure('units','normalized','outerposition',[0 0 1 1]);
+subplot(1,2,1)
+plot(tspan,uarray(:,:,1), 'Linewidth', 1.5);
+xlabel('Time');
+ylabel('Voltage');
+legend(strcat('start =', num2str(u0array(1,:)')))
+title("E")
+subplot(1,2,2)
+plot(tspan,uarray(:,:,2), 'Linewidth', 1.5);
+xlabel('Time');
+ylabel('Voltage');
+legend(strcat('start =', num2str(u0array(1,:)')))
+title("I")
+
+saveas(gcf,'2D_startpos.png')
+
+
+
+
+
+
+
+
+%% Family of curves for different starting points (DO NOT USE)
+y0array = rand(2,10)*200-100; % start them randomly between -5 and 5 in both dimensions
+% yarray = zeros(size(y0,2),length(tpositions));
+
+ figure(4);
+for ii=1:10
+    y0=y0array(:,ii);
+    
+    [tout,yout] = ode45(@ssn_voltage_ode, tspan, y0);
+   
+    hold all;
+    plot(yout(:,1),yout(:,2));
+    
+end
+
+xlabel('Voltage E');
+ylabel('Voltage I');
+title('Voltage over time; different starting points');
+
+%saveas(gcf,'2D_famCurves.png')
+
+% What determines whether a starting point ends up high or low? 

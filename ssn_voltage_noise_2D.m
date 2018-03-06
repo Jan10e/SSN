@@ -49,7 +49,7 @@ ode = @(t, u, h)  ((-u + V_rest) + W*(k.*ReLU(u - V_rest).^n) + h)./tau;
 
 %% Generate a graph of fluctuations versus input
 
-h_range = (0:2.5:20);
+h_range = (0:0.5:20);
 %h_range = 0:1;         %to check for dynamics for no input
 stds_range = zeros(2, length(h_range));
 mean_range = zeros(2, length(h_range));
@@ -71,7 +71,7 @@ for nn = 1:length(h_range)
     %Integrate neural system with noise forcing
     for ii = 1: length(eta)-1  
       % Take the Euler step + x(i) which is the noise
-      u(:,ii+1) = u(:,ii) + ode(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; 
+      u(:,ii+1) = u(:,ii) + ode(t, (u(:,ii)), h)*dt + (eta(:,ii)*0) * dt./tau; 
     end
   
     
@@ -128,11 +128,11 @@ for m = 1:length(h_range)
     plot(t, u, 'Linewidth',1)
     ylabel("voltage")
     xlabel("time")
-    legend("E", "P", "V", "S")
+    legend("E", "I")
 
 end
 
-
+%saveas(gcf, '2Dvolt_h0215.png')
 
 
 %% Sanity check

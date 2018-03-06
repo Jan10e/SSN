@@ -34,7 +34,7 @@ param.tau = [param.tau_E; param.tau_P; param.tau_V; param.tau_S];
 
 % Input
 %Hh = zeros(4,1);              %input; no input = 0; somewhat larger input = 2; large input = 15
-param.Hh = [0; 0; 0; 0];             %E, P, V, S
+param.Hh = [15; 15; 15; 15];             %E, P, V, S
 
 paramsave = param;
 

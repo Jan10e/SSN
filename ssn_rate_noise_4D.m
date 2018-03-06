@@ -183,7 +183,7 @@ end
 %% Recreate fig 7c of Kuchibotla
 % create separate input to cells and look at change from baseline (h = 0)
 
-h_range = [15; 0; 0; 0]; %E, P, V, S
+h_range = [0; 15; 0; 15]; %E, P, V, S (passive state: E and V; active state: P and S)
 for m = 1:length(h_range)
     
     % update input
@@ -194,7 +194,7 @@ for m = 1:length(h_range)
     %Integrate neural system with noise forcing
     for ii = 1: length(eta)-1  
       % Take the Euler step + x(i) which is the noise
-      u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + (eta(:,ii)*0) * dt./tau;  %first try without noise (eta * 0)
+      u(:,ii+1) = u(:,ii) + ode_rate(tpositions, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau;  %first try without noise (eta * 0)
     end
 
 
@@ -202,24 +202,29 @@ end
 
 
 figure;
-plot(t, u, 'LineWidth',2)
+plot(tpositions, u, 'LineWidth',2)
 ylabel("rate")
 xlabel("time")
 legend("E", "P", "V", "S")
 
 % h = 0 for all: shows that all rates go from 1 to 0 within 0.1ms (E is a bit slower)
 
+%saveas(gcf, 'passive_context.png')
+%saveas(gcf, 'active_context.png')
+
 %% Passive vs Active
 
 % passive state is stimulus only. As discussed with Yashar, stimulus only
-% is h input to E and PV cells, although h does not have to be similar,
-% i.e. h = 15 for E and h = 2-15 for PV cells
+% is h input to E and PV cells, although h does not have to be similar.
 
-% % run script with h = 15 for E cells and h = 5 for PV
+% In Kuchibhotla, passive state is increase of activity by Exc and VIP cells 
+% i.e. h = 15 for E and h = 15 for VIP cells
+
+% % run script with h = 15 for E cells and h = 15 for VIP
 u_passive = u;
 
-% active state is attentive state, which means that only E get h input. Set
-% h=15 for E
+%Active state in Kuchibhotla is described as increased activity of PV and SOM. Set
+% h=15 for PV and SOM
 
 % run script with h = 15 only for E cells
 u_active = u;
@@ -261,4 +266,29 @@ for m = 1:length(val)
 end
 
 
+%% Give h-range input to I's only
+% create separate input to cells and look at change from baseline (h = 0)
+
+h_range = [15; 15; 15; 15]; %E, P, V, S (passive state: E and V; active state: P and S)
+for m = 1:length(h_range)
+    
+    % update input
+    h_factor = h_range(m);
+    disp(h_factor)
+    h = h_range;
+
+    %Integrate neural system with noise forcing
+    for ii = 1: length(eta)-1  
+      % Take the Euler step + x(i) which is the noise
+      u(:,ii+1) = u(:,ii) + ode_rate(tpositions, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau;  %first try without noise (eta * 0)
+    end
+
+end
+
+
+figure;
+plot(tpositions, u, 'LineWidth',2)
+ylabel("rate")
+xlabel("time")
+legend("E", "P", "V", "S")
 
