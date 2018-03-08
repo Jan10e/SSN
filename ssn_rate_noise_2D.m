@@ -51,7 +51,7 @@ ode_rate = @(t, u, h)  (-u + k.*ReLU(W *u + h).^n)./tau;
 
 %% Generate a graph of fluctuations versus input (noise can be excluded; line 101)
 
-h_range = (0:1.0:100);
+h_range = (0:0.5:20);
 %h_range = 0:1;         %to check for dynamics for no input
 stds_range = zeros(2, length(h_range));
 mean_range = zeros(2, length(h_range));
@@ -72,7 +72,7 @@ for nn = 1:length(h_range)
     %Integrate neural system with noise forcing
     for ii = 1: length(eta)-1  
       % Forward Euler step + x(i) which is the noise
-      u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + (eta(:,ii)*0) * dt./tau; %set eta * 0 to remove noise
+      u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; %set eta * 0 to remove noise
     end
   
     
@@ -84,7 +84,7 @@ end
 
 figure;
 subplot(1,2,1)
-plot(h_range, mean_range)
+plot(h_range, mean_range, 'Linewidth', 1.5)
 title("mean rate")
 ylabel("rate")
 xlabel("h")
@@ -92,11 +92,18 @@ legend("E", "I")
 
 
 subplot(1,2,2)
-plot(h_range, stds_range)
+plot(h_range, stds_range, 'Linewidth', 1.5)
 title("std dev. rate")
 ylabel("rate")
 xlabel("h")
 legend("E", "I")
+
+%Noise correlation at what rate and h
+[nc_rateE, nc_idxE]= max(stds_range(1,:));
+[nc_rateI, nc_idxI] = max(stds_range(2,:));
+
+nc_hE = h_range(nc_idxE);
+nc_hI = h_range(nc_idxI);
 
 
 %% Sanity check

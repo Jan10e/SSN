@@ -68,34 +68,6 @@ title("Time traces of response with noise")
 legend("E", "I")
 
 
-%% H-range values and examine the time traces
-% At what h value does the fixed point change?
-h_range = (0:0.5:20);
-
-figure; hold on;
-for ii=1:length(h_range)
-    
-    % update input
-    h_factor = h_range(ii);
-    disp(h_factor)
-    h = ones(2,1) * h_factor;
-    
-    u(1) = 0.1; % starting position for x
-    
-    %Integrate neural system with noise forcing
-    for ii=2:length(tspan)
-        u(ii) = u(ii-1) + dt*ssn_voltage_ode(tspan(ii),u(ii-1));
-    end
-    plot(tspan,u,'r-');
-    
-    
-end
-xlabel('Time (seconds)');   
-ylabel('Voltage');
-title('Voltage over time');
-
-
-
 %% Look at many starting positions
 Tf = 0.25; % 5 minutes
 tspan = [T0:dt:Tf];
