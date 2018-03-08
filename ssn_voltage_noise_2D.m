@@ -71,7 +71,7 @@ for nn = 1:length(h_range)
     %Integrate neural system with noise forcing
     for ii = 1: length(eta)-1  
       % Take the Euler step + x(i) which is the noise
-      u(:,ii+1) = u(:,ii) + ode(t, (u(:,ii)), h)*dt + (eta(:,ii)*0) * dt./tau; 
+      u(:,ii+1) = u(:,ii) + ode(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; 
     end
   
     

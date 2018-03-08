@@ -35,7 +35,7 @@ sigma_a = sigma_0.*sqrt(1 + (tau./tau_noise));
 eta = zeros(2,length(t));        % Allocate integrated eta vector
 
 % ODE: initial 
-u_0 = [-60; -80];                   % Vm for neuron (-60 for E, -80 for I)
+u_0 = [0; 0];                   % Vm for neuron (-60 for E, -80 for I)
 u = zeros(2,length(eta));
 u(:,1) = u_0;
 
@@ -68,8 +68,9 @@ for nn = 1:length(h_range)
     %Integrate neural system with noise forcing
     for ii = 1: length(eta)-1  
       % Take the Euler step + x(i) which is the noise
-      u(:,ii+1) = u(:,ii) + ode(t, (u(:,ii)), h)*dt + (eta(:,ii)*0) * dt./tau; 
+      u(:,ii+1) = u(:,ii) + ode(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; 
     end
+    
     
 end
     
