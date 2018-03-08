@@ -98,13 +98,84 @@ ylabel("rate")
 xlabel("h")
 legend("E", "I")
 
-%Noise correlation at what rate and h
-[nc_rateE, nc_idxE]= max(stds_range(1,:));
-[nc_rateI, nc_idxI] = max(stds_range(2,:));
 
-nc_hE = h_range(nc_idxE);
-nc_hI = h_range(nc_idxI);
+%% Get Noise Correlations (NC)
+%High NC at what rate and h
+[ncHigh_E, ncHigh_idxE]= max(stds_range(1,:));
+[ncHigh_I, ncHigh_idxI] = max(stds_range(2,:));
+
+ncHigh_hE = h_range(ncHigh_idxE);
+ncHigh_hI = h_range(ncHigh_idxI);
 
 
-%% Sanity check
-% look how this works for variaous tau > when tau is really small and big
+% Smallest NC, starting at the high NC of matrix to avoid low NC between h=0-2
+[ncLow_E, ncLow_idxE]= min(stds_range(1,ncHigh_idxE:end));
+[ncLow_I, ncLow_idxI]= min(stds_range(2,ncHigh_idxI:end));
+
+ncLow_hE = h_range(ncLow_idxE);
+ncLow_hI = h_range(ncLow_idxI);
+
+
+%% Get states
+
+% h_spont 
+%is where the nc is highest, ncHigh, which is at h = 2
+%constant is ncHigh_hE as in the vector the value for E is 1
+ncHigh = ncHigh_hE;
+
+% get value for I in vector
+I_spont = ncHigh_hI/ncHigh_hE;
+h_spont = ncHigh*[1;I_spont];
+
+
+%h_stim 
+%is where nc is lowest, ncLow, which is at h = 15
+%constant is ncLow_hE as in the vector the value for E is 1
+ncLow = ncLow_hE;
+
+%get value for I in vector
+I_stim = ncLow_hI/ncLow_hE;
+h_stim = ncLow * [1;I_stim];
+
+
+%h_att
+%NC decreases more for h_stim, so less fluctuation in rates and evoked rates
+%increase (h > 15)
+alpha = 20;
+h_att = alpha * [1;1]; %play around with I value
+
+
+%h_loc
+% NC decreases more for h_stim, so less fluctuation in rates and evoked rates
+%increase (h > 15). This is a large effect compared to h_att
+lambda = 30;
+h_loc = lambda * [1;0.5]; %play around with I value
+
+
+%% Rate output for h is h_spont, h_stim, h_att, h_loc
+figure;
+h_range = [h_spont, h_stim, h_att, h_loc];
+for m = 1:length(h_range)
+    
+    % update input
+    h = h_range(:,m);
+    disp(h)
+    
+    %Integrate neural system with noise forcing
+    for ii = 1: length(eta)-1  
+      % Take the Euler step + x(i) which is the noise
+      u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; 
+    end
+    
+    subplot(1, 4, m)
+    plot(t, u, 'Linewidth',1) %order plots: h_spont, h_stim, h_att, h_loc
+    ylim([0 250])
+    ylabel("rate")
+    xlabel("time")
+    legend("E", "I")
+
+end
+
+
+%% Get mean and std dev of different h's
+
