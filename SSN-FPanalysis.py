@@ -45,7 +45,7 @@ tau_I = 0.01
 tau = sp.array([tau_E, tau_I])
 
 # external forcing
-h = sp.ones(2)*15
+h = sp.ones(2)*2
 
 # initial and time vector
 u_0 = sp.array([-60, -80])
