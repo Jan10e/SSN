@@ -84,19 +84,63 @@ end
 
 figure;
 subplot(1,2,1)
-plot(h_range, mean_range, 'Linewidth', 1.5)
+plot(h_range, mean_range, 'Linewidth', 1.5);
+legend("E","I", 'AutoUpdate','off')
+% Add a patch
+patch([1.5 3 3 1.5],[min(ylim) min(ylim) max(ylim) max(ylim)], [0.9 0.9 0.9]);
+patch([14 20 20 14],[min(ylim) min(ylim) max(ylim) max(ylim)], [0.9 0.9 0.9]);
+% The order of the "children" of the plot determines which one appears on top.
+% I need to flip it here.
+set(gca,'children',flipud(get(gca,'children')))
+% figure labels
 title("mean rate")
 ylabel("rate")
 xlabel("h")
-legend("E", "I")
 
 
 subplot(1,2,2)
 plot(h_range, stds_range, 'Linewidth', 1.5)
+legend("E","I", 'AutoUpdate','off')
+% Add a patch
+patch([1.5 3 3 1.5],[min(ylim) min(ylim) 2 2], [0.9 0.9 0.9])
+patch([14 20 20 14],[min(ylim) min(ylim) max(ylim) max(ylim)], [0.9 0.9 0.9])
+% The order of the "children" of the plot determines which one appears on top.
+% I need to flip it here.
+set(gca,'children',flipud(get(gca,'children')))
+% figure labels
 title("std dev. rate")
 ylabel("rate")
 xlabel("h")
-legend("E", "I")
+
+
+
+%% Rate output for h is 0, 2, 15
+figure;
+h_range = [0, 2, 15];
+for m = 1:length(h_range)
+    
+    % update input
+    h_factor = h_range(m);
+    disp(h_factor)
+    h = ones(2,1) * h_factor;
+    
+
+    %Integrate neural system with noise forcing
+    for ii = 1: length(eta)-1  
+      % Take the Euler step + x(i) which is the noise
+      u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; 
+    end
+    
+    subplot(1, 3, m)
+    plot(t, u, 'Linewidth',1)
+    ylim([-2 50])
+    ylabel("rate")
+    xlabel("time")
+    legend("E", "I")
+
+end
+
+%saveas(gcf, [pwd '/figures/2Drate_h0215.png'])
 
 
 %% Get Noise Correlations (NC)
@@ -141,15 +185,16 @@ h_stim = ncLow * [1;I_stim];
 %h_att
 %NC decreases more for h_stim, so less fluctuation in rates and evoked rates
 %increase (h > 15)
-alpha = 20;
+alpha = 1; %should be smaller than lambda
 h_att = alpha * [1;1]; %play around with I value
 
 
 %h_loc
 % NC decreases more for h_stim, so less fluctuation in rates and evoked rates
 %increase (h > 15). This is a large effect compared to h_att
-lambda = 30;
-h_loc = lambda * [1;0.5]; %play around with I value
+lambda = 1;
+h_loc = lambda * [1;0.2]; %play around with I value: [1; 0.2] seems best
+
 
 
 %% Rate output for h is h_spont, h_stim, h_att, h_loc
@@ -178,4 +223,76 @@ end
 
 
 %% Get mean and std dev of different h's
+h_range = (0:0.5:20);
+stds_range = zeros(2, length(h_range));
+mean_range = zeros(2, length(h_range));
+for nn = 1:length(h_range)
+    
+    % update input
+    h_factor = h_range(nn);
+    disp(h_factor)
+    %h = ones(2,1) * h_factor;
+    
+    %spontaneous
+    %h = h_spont * h_factor;
+    
+    %stimulus only
+    %h = h_stim * h_factor;
+    
+    %attention
+    %h = h_att * h_factor;
+    
+    %locomotion
+    h = h_loc * h_factor;
+    
 
+    %Generate noise vector
+    for ii = 1:length(t)-1
+        eta(:,ii+1) = eta(:,ii) + (-eta(:,ii) *dt + sqrt(2 .*dt*tau_noise*sigma_a.^2).*(randn(2,1))) *(1./tau_noise);
+    end
+    
+
+    %Integrate neural system with noise forcing
+    for ii = 1: length(eta)-1  
+      % Forward Euler step + x(i) which is the noise
+      u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; 
+    end
+  
+    
+     % Get mean and std
+    mean_range(:,nn) = mean(u, 2);
+    stds_range(:,nn)= std(u,0,2);
+    
+end
+
+figure;
+subplot(1,2,1)
+plot(h_range, mean_range, 'Linewidth', 1.5);
+legend("E","I", 'AutoUpdate','off')
+% Add a patch
+patch([1.5 3 3 1.5],[min(ylim) min(ylim) max(ylim) max(ylim)], [0.9 0.9 0.9]);
+patch([14 max(xlim) max(xlim) 14],[min(ylim) min(ylim) max(ylim) max(ylim)], [0.9 0.9 0.9]);
+% The order of the "children" of the plot determines which one appears on top.
+% I need to flip it here.
+set(gca,'children',flipud(get(gca,'children')))
+% figure labels
+title("mean rate")
+ylabel("rate")
+xlabel("h")
+
+
+subplot(1,2,2)
+plot(h_range, stds_range, 'Linewidth', 1.5)
+legend("E","I", 'AutoUpdate','off')
+% Add a patch
+patch([1.5 3 3 1.5],[min(ylim) min(ylim) max(ylim) max(ylim)], [0.9 0.9 0.9])
+patch([14 max(xlim) max(xlim) 14],[min(ylim) min(ylim) max(ylim) max(ylim)], [0.9 0.9 0.9])
+% The order of the "children" of the plot determines which one appears on top.
+% I need to flip it here.
+set(gca,'children',flipud(get(gca,'children')))
+% figure labels
+title("std dev. rate")
+ylabel("rate")
+xlabel("h")
+
+%saveas(gcf, [pwd '/figures/2Drate_meanstd_loc.png'])
