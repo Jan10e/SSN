@@ -9,7 +9,7 @@
 
 %% Parameters
 k = 0.3; %scaling constant 
-n = 2;
+b = 2;
 
 % Connectivity Matrix W as in Hennequin
 w_EE = 1.25;
@@ -46,7 +46,7 @@ u(:,1) = u_0;
 %% Functions
 
 % ODE with rate as dynamical variable
-ode_rate = @(t, u, h)  (-u + k.*ReLU(W *u + h).^n)./tau;
+ode_rate = @(t, u, h)  (-u + k.*ReLU(W *u + h).^b)./tau;
 
 
 %% Generate a graph of fluctuations versus input (noise can be excluded; line 101)
@@ -55,10 +55,10 @@ h_range = (0:0.5:20);
 %h_range = 0:1;         %to check for dynamics for no input
 stds_range = zeros(2, length(h_range));
 mean_range = zeros(2, length(h_range));
-for nn = 1:length(h_range)
+for a = 1:length(h_range)
     
     % update input
-    h_factor = h_range(nn);
+    h_factor = h_range(a);
     disp(h_factor)
     h = ones(2,1) * h_factor;
     
@@ -77,8 +77,8 @@ for nn = 1:length(h_range)
   
     
      % Get mean and std
-    mean_range(:,nn) = mean(u, 2);
-    stds_range(:,nn)= std(u,0,2);
+    mean_range(:,a) = mean(u, 2);
+    stds_range(:,a)= std(u,0,2);
     
 end
 
@@ -168,8 +168,9 @@ ncLow_hI = h_range(ncLow_idxI);
 ncHigh = ncHigh_hE;
 
 % get value for I in vector
-I_spont = ncHigh_hI/ncHigh_hE;
-h_spont = ncHigh*[1;I_spont];
+%I_spont = ncHigh_hI/ncHigh_hE;
+%h_spont = ncHigh*[1;I_spont];
+h_spont = 2 * [1;1];
 
 
 %h_stim 
@@ -178,23 +179,73 @@ h_spont = ncHigh*[1;I_spont];
 ncLow = ncLow_hE;
 
 %get value for I in vector
-I_stim = ncLow_hI/ncLow_hE;
-h_stim = ncLow * [1;I_stim];
+% I_stim = ncLow_hI/ncLow_hE;
+% h_stim = ncLow * [1;I_stim];
+h_stim = 15 * [1;1];
 
 
 %h_att
 %NC decreases more for h_stim, so less fluctuation in rates and evoked rates
 %increase (h > 15)
-alpha = 1; %should be smaller than lambda
-h_att = alpha * [1;1]; %play around with I value
+alpha = 0.07; %should be smaller than lambda
+h_att = alpha * [1;0.2]; %play around with I value
 
 
 %h_loc
 % NC decreases more for h_stim, so less fluctuation in rates and evoked rates
 %increase (h > 15). This is a large effect compared to h_att
-lambda = 1;
-h_loc = lambda * [1;0.2]; %play around with I value: [1; 0.2] seems best
+% lambda = 0.3; %0.3 - 0.5 gives decreasing nc and relatively low sc, but all nc are higher than normal
+% h_loc = lambda * [1;0.2]; %play around with I value: [1; 0.2] seems best
 
+lambda = 0.5; %0.5 - 0.7 gives stable or increasing rate
+h_loc = lambda * [1;1.1]; 
+
+
+%% Parameter search with 2D plot. 
+% Arousal/locomotion and attention
+h_range = (0:3:15);
+I_range = (0:0.5:5); %range for I cell parameter values
+par_change = zeros(length(h_range),length(I_range), 2, length(t));
+for a = 1:length(h_range)
+    
+    % update h_range input
+    h_factor = h_range(a);
+    fprintf('\n h-range: %d\n\n', h_factor)
+    
+    for b = 1:length(I_range) % look over range of I input
+    
+    % update I_range input    
+    h = [1;b] * a;
+    fprintf('I-range: %d\n', h)
+
+    
+        %Generate noise vector
+        for ii = 1:length(t)-1
+            eta(:,ii+1) = eta(:,ii) + (-eta(:,ii) *dt + sqrt(2 .*dt*tau_noise*sigma_a.^2).*(randn(2,1))) *(1./tau_noise);
+        end
+
+        %Integrate neural system with noise forcing
+        for ii = 1: length(eta)-1
+            % Forward Euler step + x(i) which is the noise
+            u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; 
+        end
+     
+            % add u to matrix 
+            par_change(a,b,:,:) = u;
+        
+    end
+    
+end
+
+%stats
+mean_par = mean(par_change, 4);
+stds_par= std(par_change,0,4);
+
+imagesc(mean_par(:,:,1))
+imagesc(mean_par(:,:,2))
+
+imagesc(stds_par(:,:,1))
+imagesc(stds_par(:,:,2))
 
 
 %% Rate output for h is h_spont, h_stim, h_att, h_loc
@@ -206,6 +257,11 @@ for m = 1:length(h_range)
     h = h_range(:,m);
     disp(h)
     
+    %Generate noise vector
+    for ii = 1:length(t)-1
+        eta(:,ii+1) = eta(:,ii) + (-eta(:,ii) *dt + sqrt(2 .*dt*tau_noise*sigma_a.^2).*(randn(2,1))) *(1./tau_noise);
+    end
+    
     %Integrate neural system with noise forcing
     for ii = 1: length(eta)-1  
       % Take the Euler step + x(i) which is the noise
@@ -214,7 +270,7 @@ for m = 1:length(h_range)
     
     subplot(1, 4, m)
     plot(t, u, 'Linewidth',1) %order plots: h_spont, h_stim, h_att, h_loc
-    ylim([0 250])
+    ylim([0 100])
     ylabel("rate")
     xlabel("time")
     legend("E", "I")
@@ -223,18 +279,18 @@ end
 
 
 %% Get mean and std dev of different h's
-h_range = (0:0.5:20);
+h_range = (0:1:20);
 stds_range = zeros(2, length(h_range));
 mean_range = zeros(2, length(h_range));
-for nn = 1:length(h_range)
+for a = 1:length(h_range)
     
     % update input
-    h_factor = h_range(nn);
+    h_factor = h_range(a);
     disp(h_factor)
     %h = ones(2,1) * h_factor;
     
     %spontaneous
-    %h = h_spont * h_factor;
+    h = h_spont * h_factor;
     
     %stimulus only
     %h = h_stim * h_factor;
@@ -243,7 +299,7 @@ for nn = 1:length(h_range)
     %h = h_att * h_factor;
     
     %locomotion
-    h = h_loc * h_factor;
+   %h = h_loc * h_factor;
     
 
     %Generate noise vector
@@ -260,8 +316,8 @@ for nn = 1:length(h_range)
   
     
      % Get mean and std
-    mean_range(:,nn) = mean(u, 2);
-    stds_range(:,nn)= std(u,0,2);
+    mean_range(:,a) = mean(u, 2);
+    stds_range(:,a)= std(u,0,2);
     
 end
 
@@ -276,7 +332,7 @@ patch([14 max(xlim) max(xlim) 14],[min(ylim) min(ylim) max(ylim) max(ylim)], [0.
 % I need to flip it here.
 set(gca,'children',flipud(get(gca,'children')))
 % figure labels
-title("mean rate")
+title({"mean rate",  "0.08 * [1;0.2]"})
 ylabel("rate")
 xlabel("h")
 
@@ -291,8 +347,8 @@ patch([14 max(xlim) max(xlim) 14],[min(ylim) min(ylim) max(ylim) max(ylim)], [0.
 % I need to flip it here.
 set(gca,'children',flipud(get(gca,'children')))
 % figure labels
-title("std dev. rate")
+title({"std dev. rate", "0.08 * [1;0.2]"})
 ylabel("rate")
 xlabel("h")
 
-%saveas(gcf, [pwd '/figures/2Drate_meanstd_loc.png'])
+%saveas(gcf, [pwd '/figures/2Drate_meanstd_loc_03.png'])
