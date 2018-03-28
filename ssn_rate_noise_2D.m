@@ -203,8 +203,8 @@ h_loc = lambda * [1;1.1];
 
 %% Parameter search with 2D plot. 
 % Arousal/locomotion and attention
-h_range = (0:3:15);
-I_range = (0:0.5:5); %range for I cell parameter values
+h_range = (0:1:15);
+I_range = (0:0.5:10); %range for I cell parameter values
 par_change = zeros(length(h_range),length(I_range), 2, length(t));
 for a = 1:length(h_range)
     
@@ -241,12 +241,35 @@ end
 mean_par = mean(par_change, 4);
 stds_par= std(par_change,0,4);
 
+% plot stats
+figure;
+subplot(2,2,1)
 imagesc(mean_par(:,:,1))
+title("mean rate E")
+ylabel("h-range")
+xlabel("I-range")
+colorbar
+
+subplot(2,2,2)
 imagesc(mean_par(:,:,2))
+title("mean rate I")
+ylabel("h-range")
+xlabel("I-range")
+colorbar
 
+subplot(2,2,3)
 imagesc(stds_par(:,:,1))
-imagesc(stds_par(:,:,2))
+title("std dev rate E")
+ylabel("h-range")
+xlabel("I-range")
+colorbar
 
+subplot(2,2,4)
+imagesc(stds_par(:,:,2))
+title("std dev rate I")
+ylabel("h-range")
+xlabel("I-range")
+colorbar
 
 %% Rate output for h is h_spont, h_stim, h_att, h_loc
 figure;
