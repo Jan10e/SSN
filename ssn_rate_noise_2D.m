@@ -160,6 +160,117 @@ ncLow_hE = h_range(ncLow_idxE);
 ncLow_hI = h_range(ncLow_idxI);
 
 
+
+%% Parameter search with 2D plot. 
+% Find the values for parameter setting (h_tot) in arousal/locomotion and attention
+% h_tot = a * [1;b], a = h_range, b = I_range
+
+h_range = (2:1:20);
+I_range = (-3:0.2:3); %range for I cell parameter values
+par_change = zeros(length(h_range),length(I_range), 2, length(t));
+for a = 1:length(h_range)
+    
+    % update h_range input
+    h_factor = h_range(a);
+    fprintf('\n h-range: %d\n\n', h_factor)
+    
+    for b = 1:length(I_range) % look over range of I input
+    
+    % update I_range input    
+    h = [1;I_range(b)] * h_range(a);
+    fprintf('I-range: %d\n', h)
+
+    
+        %Generate noise vector
+        for ii = 1:length(t)-1
+            eta(:,ii+1) = eta(:,ii) + (-eta(:,ii) *dt + sqrt(2 .*dt*tau_noise*sigma_a.^2).*(randn(2,1))) *(1./tau_noise);
+        end
+
+        %Integrate neural system with noise forcing
+        for ii = 1: length(eta)-1
+            % Forward Euler step + x(i) which is the noise
+            u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; 
+        end
+     
+            % add u to matrix 
+            par_change(a,b,:,:) = u;
+        
+    end
+    
+end
+
+%stats
+mean_par = mean(par_change, 4);
+stds_par= std(par_change,0,4);
+
+save('data/par_change-b-3-3.mat', 'par_change')
+save('data/mean_par-b-3-3.mat', 'mean_par')
+save('data/stds_par-b-3-3.mat', 'stds_par')
+
+% plot stats
+figure;
+subplot(2,2,1)
+imagesc(mean_par(:,:,1))
+title("mean rate E")
+ylabel("h-range (0:1:20)")
+xlabel("I-range (0:0.1:5)")
+colorbar
+
+subplot(2,2,2)
+imagesc(mean_par(:,:,2))
+title("mean rate I")
+ylabel("h-range (0:1:20)")
+xlabel("I-range (0:0.1:5)")
+colorbar
+
+subplot(2,2,3)
+imagesc(stds_par(:,:,1))
+title("std dev rate E")
+ylabel("h-range (0:1:20)")
+xlabel("I-range (0:0.1:5)")
+colorbar
+
+subplot(2,2,4)
+imagesc(stds_par(:,:,2))
+title("std dev rate I")
+ylabel("h-range (0:1:20)")
+xlabel("I-range (0:0.1:5)")
+colorbar
+
+
+% what I-range gives the min std-dev over all h-ranges (look for lowest NC)
+%[stds_E_least, stds_E_least_idx] =min(stds_par(:,:,1)); %extract minimum std dev for I-range across h-range
+E_stds_b = mean(stds_par(:,:,1)); %get mean I-range values over h_range
+
+figure;
+plot(E_stds_b, '-rs', 'LineWidth', 1.5)
+hold on
+ylabel('std dev')
+
+
+% beta_E = mean(stds_E_least_Irange); %get mean values
+% beta_E_min = stds_E_least_Irange(stds_E_least_Irange>0); %get ranges > min
+% beta_E_min = min(beta_E_min); %stds value 
+% [beta_E_max, beta_E_max_idx] = max(stds_E_least_Irange); %get ranges > max
+
+%get mean rate 
+E_rate_b = mean(mean_par(:,:,1));
+
+plot(E_rate_b, 'g', 'LineWidth', 2)
+hold on
+xlabel('idx I-range')
+ylabel('rate')
+title('b-param for E population')
+legend("std dev", "rate")
+
+%look where distance between nc and rate is largest
+E_diff = (E_rate_b(:) - E_stds_b(:));
+plot(E_diff, '-bs')
+
+[E_diff_max, E_diff_max_idx] = max(E_diff);
+I_range(E_diff_max_idx) %b value where nc and rate distance is largest 
+
+
 %% Get states
 
 % h_spont 
@@ -200,76 +311,6 @@ h_att = alpha * [1;0.2]; %play around with I value
 lambda = 0.5; %0.5 - 0.7 gives stable or increasing rate
 h_loc = lambda * [1;1.1]; 
 
-
-%% Parameter search with 2D plot. 
-% Arousal/locomotion and attention
-h_range = (0:1:15);
-I_range = (0:0.5:10); %range for I cell parameter values
-par_change = zeros(length(h_range),length(I_range), 2, length(t));
-for a = 1:length(h_range)
-    
-    % update h_range input
-    h_factor = h_range(a);
-    fprintf('\n h-range: %d\n\n', h_factor)
-    
-    for b = 1:length(I_range) % look over range of I input
-    
-    % update I_range input    
-    h = [1;b] * a;
-    fprintf('I-range: %d\n', h)
-
-    
-        %Generate noise vector
-        for ii = 1:length(t)-1
-            eta(:,ii+1) = eta(:,ii) + (-eta(:,ii) *dt + sqrt(2 .*dt*tau_noise*sigma_a.^2).*(randn(2,1))) *(1./tau_noise);
-        end
-
-        %Integrate neural system with noise forcing
-        for ii = 1: length(eta)-1
-            % Forward Euler step + x(i) which is the noise
-            u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; 
-        end
-     
-            % add u to matrix 
-            par_change(a,b,:,:) = u;
-        
-    end
-    
-end
-
-%stats
-mean_par = mean(par_change, 4);
-stds_par= std(par_change,0,4);
-
-% plot stats
-figure;
-subplot(2,2,1)
-imagesc(mean_par(:,:,1))
-title("mean rate E")
-ylabel("h-range")
-xlabel("I-range")
-colorbar
-
-subplot(2,2,2)
-imagesc(mean_par(:,:,2))
-title("mean rate I")
-ylabel("h-range")
-xlabel("I-range")
-colorbar
-
-subplot(2,2,3)
-imagesc(stds_par(:,:,1))
-title("std dev rate E")
-ylabel("h-range")
-xlabel("I-range")
-colorbar
-
-subplot(2,2,4)
-imagesc(stds_par(:,:,2))
-title("std dev rate I")
-ylabel("h-range")
-xlabel("I-range")
-colorbar
 
 %% Rate output for h is h_spont, h_stim, h_att, h_loc
 figure;
