@@ -20,8 +20,8 @@ W = [w_EE w_EI; w_IE w_II];
 
 
 % Membrane time constant 
-tau_E = 20000/1000;                   %ms; 20ms for E
-tau_I = 10000/1000;                    %ms; 10ms for I
+tau_E = 20/1000;                   %ms; 20ms for E
+tau_I = 10/1000;                    %ms; 10ms for I
 tau = [tau_E; tau_I];
 
 % Time vector
@@ -165,21 +165,24 @@ ncLow_hI = h_range(ncLow_idxI);
 % Find the values for parameter setting (h_tot) in arousal/locomotion and attention
 % h_tot = a * [1;b], a = h_range, b = I_range
 
-a_range = (0:1:20);
-b_range = (-3:0.2:3); %range for I cell parameter values
-par_change = zeros(length(h_range),length(b_range), 2, length(t));
-for a = 1:length(h_range)
+a_range = (0:0.5:15);
+b_range = (-2:0.2:1.5); %range for I cell parameter values
+par_change = zeros(length(b_range),length(a_range), 2, length(t));
+stds_range_a = zeros(length(a_range),2);
+mean_range_a = zeros(length(a_range),2);
+par_change_mean = zeros(length(b_range),length(a_range),2);
+par_change_stds = zeros(length(b_range),length(a_range),2);
+for b = 1:length(b_range)
     
     % update h_range input
-    h_factor = h_range(a);
-    fprintf('\n h-range: %d\n\n', h_factor)
+    fprintf('\n b-range: %d\n\n', b_range(b))
     
-    for b = 1:length(b_range) % look over range of I input
+    for a = 1:length(a_range) % look over range of I input
         
-        fprintf('\n b-value: %d\n', b_range(b))
+        fprintf('\n a-value: %d\n', a_range(a))
     
         % update I_range input    
-         h = [1;b_range(b)] * h_range(a);
+         h = [1;b_range(b)] * a_range(a);
          fprintf('E input: %d\n', h(1))
          fprintf('I input: %d\n', h(2))
 
@@ -195,14 +198,22 @@ for a = 1:length(h_range)
             u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; 
         end
      
-            % add u to matrix 
-            par_change(a,b,:,:) = u;
+        
+          % add u to matrix 
+            par_change(b,a,:,:) = u;
+        
+          %stats
+            mean_range_a(a,:) = mean(u,2);
+            stds_range_a(a,:) = std(u, 0, 2); 
         
     end
     
+            par_change_mean(b,:,:) = mean_range_a;
+            par_change_stds(b,:,:) = stds_range_a;  
+    
 end
 
-%stats
+%stats using 4D matrix
 mean_par = mean(par_change, 4);
 stds_par= std(par_change,0,4);
 
@@ -276,6 +287,156 @@ yticks = linspace(1, size(stds_par(:,:,2), 1), numel(yticklabels));
 set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
 
 
+
+%stats using 3D matrices for mean and stds
+figure;
+subplot(2,2,1)
+imagesc(par_change_mean(:,:,1))
+title("mean rate E")
+ylabel("a-range (0:1:20)")
+xlabel("b-range (-3:0.2:3)")
+colorbar
+
+xticklabels = b_range(1:3:end);
+xticks = linspace(1, size(par_change_mean(:,:,1), 2), numel(xticklabels));
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+
+yticklabels = a_range(1:2:end);
+yticks = linspace(1, size(par_change_mean(:,:,1), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+
+
+subplot(2,2,2)
+imagesc(par_change_mean(:,:,2))
+title("mean rate I")
+ylabel("a-range (0:1:20)")
+xlabel("b-range (-3:0.2:3)")
+colorbar
+
+xticklabels = b_range(1:3:end);
+xticks = linspace(1, size(par_change_mean(:,:,2), 2), numel(xticklabels));
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+
+yticklabels = a_range(1:2:end);
+yticks = linspace(1, size(par_change_mean(:,:,2), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+
+
+subplot(2,2,3)
+imagesc(par_change_stds(:,:,1))
+title("std dev E")
+ylabel("a-range (0:1:20)")
+xlabel("b-range (-3:0.2:3)")
+colorbar
+
+xticklabels = b_range(1:3:end);
+xticks = linspace(1, size(par_change_stds(:,:,1), 2), numel(xticklabels));
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+
+yticklabels = a_range(1:2:end);
+yticks = linspace(1, size(par_change_stds(:,:,1), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+
+
+subplot(2,2,4)
+imagesc(par_change_stds(:,:,2))
+title("std dev I")
+ylabel("a-range (0:1:20)")
+xlabel("b-range (-3:0.2:3)")
+colorbar
+
+xticklabels = b_range(1:3:end);
+xticks = linspace(1, size(par_change_stds(:,:,2), 2), numel(xticklabels));
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+
+yticklabels = a_range(1:2:end);
+yticks = linspace(1, size(par_change_stds(:,:,2), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+
+
+%Check mean and std dev for [1;1] input
+b_range(16)
+
+figure;
+plot(a_range,par_change_mean(16,:,1))
+hold on
+plot(a_range,par_change_mean(16,:,2))
+
+figure;
+plot(a_range,par_change_stds(16,:,1))
+hold on
+plot(a_range,par_change_stds(16,:,2))
+
+
+
+%% Parameter search CHECK
+a_range = (0:1:20);
+%b_range = (-3:0.2:3); %range for I cell parameter values
+par_change_c = zeros(length(a_range), 2, length(t));
+%for b = 1:length(b_range)
+    
+    % update h_range input
+    %fprintf('\n b-range: %d\n\n', b_range(b))
+    
+    for a = 1:length(a_range) % look over range of I input
+        
+        fprintf('\n a-value: %d\n', a_range(a))
+    
+        % update I_range input    
+         h = [1;1] * a_range(a);
+         fprintf('E input: %d\n', h(1))
+         fprintf('I input: %d\n', h(2))
+
+    
+        %Generate noise vector
+        for ii = 1:length(t)-1
+            eta(:,ii+1) = eta(:,ii) + (-eta(:,ii) *dt + sqrt(2 .*dt*tau_noise*sigma_a.^2).*(randn(2,1))) *(1./tau_noise);
+        end
+
+        %Integrate neural system with noise forcing
+        for ii = 1: length(eta)-1
+            % Forward Euler step + x(i) which is the noise
+            u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; 
+        end
+     
+            % add u to matrix 
+            par_change_c(a,:,:) = u;
+        
+    end
+    
+%end
+
+%stats
+mean_par_c = mean(par_change_c, 3);
+stds_par_c= std(par_change_c,0,3);
+
+
+figure;
+subplot(2,2,1)
+imagesc(mean_par_c(:,1))
+colorbar
+
+subplot(2,2,2)
+imagesc(mean_par_c(:,2))
+colorbar
+
+subplot(2,2,3)
+imagesc(stds_par_c(:,1))
+colorbar
+
+subplot(2,2,4)
+imagesc(stds_par_c(:,2))
+colorbar
+
+
+figure;
+plot(a_range,mean_par_c(:,1))
+hold on
+plot(a_range,mean_par_c(:,2))
+figure;
+plot(a_range,stds_par_c(:,1))
+hold on
+plot(a_range,stds_par_c(:,2))
 
 
 %% What I-range gives the min std-dev over all h-ranges (look for lowest NC)
