@@ -166,12 +166,12 @@ ncLow_hI = h_range(ncLow_idxI);
 % h_tot = a * [1;b], a = h_range, b = I_range
 
 a_range = (0:0.5:15);
-b_range = (-2:0.2:1.5); %range for I cell parameter values
+b_range = (-3:0.2:3); %range for I cell parameter values
 par_change = zeros(length(b_range),length(a_range), 2, length(t));
-stds_range_a = zeros(length(a_range),2);
-mean_range_a = zeros(length(a_range),2);
-par_change_mean = zeros(length(b_range),length(a_range),2);
-par_change_stds = zeros(length(b_range),length(a_range),2);
+%stds_range_a = zeros(length(a_range),2);
+%mean_range_a = zeros(length(a_range),2);
+%par_change_mean = zeros(length(b_range),length(a_range),2);
+%par_change_stds = zeros(length(b_range),length(a_range),2);
 for b = 1:length(b_range)
     
     % update h_range input
@@ -203,13 +203,13 @@ for b = 1:length(b_range)
             par_change(b,a,:,:) = u;
         
           %stats
-            mean_range_a(a,:) = mean(u,2);
-            stds_range_a(a,:) = std(u, 0, 2); 
+            %mean_range_a(a,:) = mean(u,2);
+            %stds_range_a(a,:) = std(u, 0, 2); 
         
     end
     
-            par_change_mean(b,:,:) = mean_range_a;
-            par_change_stds(b,:,:) = stds_range_a;  
+            %par_change_mean(b,:,:) = mean_range_a;
+            %par_change_stds(b,:,:) = stds_range_a;  
     
 end
 
@@ -217,157 +217,331 @@ end
 mean_par = mean(par_change, 4);
 stds_par= std(par_change,0,4);
 
-%save('data/par_change-b-3-3.mat', 'par_change')
-%save('data/mean_par-b-3-3.mat', 'mean_par')
-%save('data/stds_par-b-3-3.mat', 'stds_par')
+save('data/par_change-b-3-3.mat', 'par_change')
+save('data/mean_par-b-3-3.mat', 'mean_par')
+save('data/stds_par-b-3-3.mat', 'stds_par')
 
 % plot stats
 figure;
 subplot(2,2,1)
 imagesc(mean_par(:,:,1))
 title("mean rate E")
-ylabel("a-range (0:1:20)")
-xlabel("b-range (-3:0.2:3)")
+xlabel("a-range")
+ylabel("b-range")
 colorbar
 
-xticklabels = b_range(1:3:end);
+xticklabels = a_range(1:2:end);
 xticks = linspace(1, size(mean_par(:,:,1), 2), numel(xticklabels));
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 
-yticklabels = a_range(1:2:end);
+yticklabels = b_range(1:2:end);
 yticks = linspace(1, size(mean_par(:,:,1), 1), numel(yticklabels));
-set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 
 
 subplot(2,2,2)
 imagesc(mean_par(:,:,2))
 title("mean rate I")
-ylabel("a-range (0:1:20)")
-xlabel("b-range (-3:0.2:3)")
+xlabel("a-range")
+ylabel("b-range")
 colorbar
 
-xticklabels = b_range(1:3:end);
+xticklabels = a_range(1:2:end);
 xticks = linspace(1, size(mean_par(:,:,2), 2), numel(xticklabels));
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 
-yticklabels = a_range(1:2:end);
+yticklabels = b_range(1:2:end);
 yticks = linspace(1, size(mean_par(:,:,2), 1), numel(yticklabels));
-set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 
 
 subplot(2,2,3)
 imagesc(stds_par(:,:,1))
 title("std dev rate E")
-ylabel("a-range (0:1:20)")
-xlabel("b-range (-3:0.2:3)")
+xlabel("a-range")
+ylabel("b-range")
 colorbar
 
-xticklabels = b_range(1:3:end);
+xticklabels = a_range(1:2:end);
 xticks = linspace(1, size(stds_par(:,:,1), 2), numel(xticklabels));
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 
-yticklabels = a_range(1:2:end);
+yticklabels = b_range(1:2:end);
 yticks = linspace(1, size(stds_par(:,:,1), 1), numel(yticklabels));
-set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 
 
 subplot(2,2,4)
 imagesc(stds_par(:,:,2))
 title("std dev rate I")
-ylabel("a-range (0:1:20)")
-xlabel("b-range (-3:0.2:3)")
+xlabel("a-range")
+ylabel("b-range")
 colorbar
 
-xticklabels = b_range(1:3:end);
+xticklabels = a_range(1:2:end);
 xticks = linspace(1, size(stds_par(:,:,2), 2), numel(xticklabels));
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 
-yticklabels = a_range(1:2:end);
+yticklabels = b_range(1:2:end);
 yticks = linspace(1, size(stds_par(:,:,2), 1), numel(yticklabels));
-set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 
 
 
-%stats using 3D matrices for mean and stds
+%stats using 3D matrices for mean and stds CHECK
+% figure;
+% subplot(2,2,1)
+% imagesc(par_change_mean(:,:,1))
+% title("mean rate E")
+% ylabel("a-range")
+% xlabel("b-range")
+% colorbar
+% 
+% xticklabels = b_range(1:3:end);
+% xticks = linspace(1, size(par_change_mean(:,:,1), 2), numel(xticklabels));
+% set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+% 
+% yticklabels = a_range(1:2:end);
+% yticks = linspace(1, size(par_change_mean(:,:,1), 1), numel(yticklabels));
+% set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+% 
+% 
+% subplot(2,2,2)
+% imagesc(par_change_mean(:,:,2))
+% title("mean rate I")
+% ylabel("a-range")
+% xlabel("b-range")
+% colorbar
+% 
+% xticklabels = b_range(1:3:end);
+% xticks = linspace(1, size(par_change_mean(:,:,2), 2), numel(xticklabels));
+% set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+% 
+% yticklabels = a_range(1:2:end);
+% yticks = linspace(1, size(par_change_mean(:,:,2), 1), numel(yticklabels));
+% set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+% 
+% 
+% subplot(2,2,3)
+% imagesc(par_change_stds(:,:,1))
+% title("std dev E")
+% ylabel("a-range")
+% xlabel("b-range")
+% colorbar
+% 
+% xticklabels = b_range(1:3:end);
+% xticks = linspace(1, size(par_change_stds(:,:,1), 2), numel(xticklabels));
+% set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+% 
+% yticklabels = a_range(1:2:end);
+% yticks = linspace(1, size(par_change_stds(:,:,1), 1), numel(yticklabels));
+% set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+% 
+% 
+% subplot(2,2,4)
+% imagesc(par_change_stds(:,:,2))
+% title("std dev I")
+% ylabel("a-range")
+% xlabel("b-range")
+% colorbar
+% 
+% xticklabels = b_range(1:3:end);
+% xticks = linspace(1, size(par_change_stds(:,:,2), 2), numel(xticklabels));
+% set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+% 
+% yticklabels = a_range(1:2:end);
+% yticks = linspace(1, size(par_change_stds(:,:,2), 1), numel(yticklabels));
+% set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+% 
+
+
+%CHECK: only plot input [1;1]
+b_range(21) 
+
 figure;
 subplot(2,2,1)
-imagesc(par_change_mean(:,:,1))
+imagesc(mean_par(21,:,1))
 title("mean rate E")
-ylabel("a-range (0:1:20)")
-xlabel("b-range (-3:0.2:3)")
+xlabel("a-range")
+ylabel("b-range")
 colorbar
 
-xticklabels = b_range(1:3:end);
-xticks = linspace(1, size(par_change_mean(:,:,1), 2), numel(xticklabels));
+xticklabels = a_range(1:2:end);
+xticks = linspace(1, size(mean_par(:,:,1), 2), numel(xticklabels));
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 
-yticklabels = a_range(1:2:end);
-yticks = linspace(1, size(par_change_mean(:,:,1), 1), numel(yticklabels));
-set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+yticklabels = b_range(21);
+yticks = linspace(1, size(mean_par(21,:,1), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 
 
 subplot(2,2,2)
-imagesc(par_change_mean(:,:,2))
+imagesc(mean_par(21,:,2))
 title("mean rate I")
-ylabel("a-range (0:1:20)")
-xlabel("b-range (-3:0.2:3)")
+xlabel("a-range")
+ylabel("b-range")
 colorbar
 
-xticklabels = b_range(1:3:end);
-xticks = linspace(1, size(par_change_mean(:,:,2), 2), numel(xticklabels));
+xticklabels = a_range(1:2:end);
+xticks = linspace(1, size(mean_par(:,:,2), 2), numel(xticklabels));
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 
-yticklabels = a_range(1:2:end);
-yticks = linspace(1, size(par_change_mean(:,:,2), 1), numel(yticklabels));
-set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+yticklabels = b_range(21);
+yticks = linspace(1, size(mean_par(21,:,2), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 
 
 subplot(2,2,3)
-imagesc(par_change_stds(:,:,1))
-title("std dev E")
-ylabel("a-range (0:1:20)")
-xlabel("b-range (-3:0.2:3)")
+imagesc(stds_par(21,:,1))
+title("std dev rate E")
+xlabel("a-range")
+ylabel("b-range")
 colorbar
 
-xticklabels = b_range(1:3:end);
-xticks = linspace(1, size(par_change_stds(:,:,1), 2), numel(xticklabels));
+xticklabels = a_range(1:2:end);
+xticks = linspace(1, size(stds_par(:,:,1), 2), numel(xticklabels));
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 
-yticklabels = a_range(1:2:end);
-yticks = linspace(1, size(par_change_stds(:,:,1), 1), numel(yticklabels));
-set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+yticklabels = b_range(21);
+yticks = linspace(1, size(stds_par(21,:,1), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 
 
 subplot(2,2,4)
-imagesc(par_change_stds(:,:,2))
-title("std dev I")
-ylabel("a-range (0:1:20)")
-xlabel("b-range (-3:0.2:3)")
+imagesc(stds_par(21,:,2))
+title("std dev rate I")
+xlabel("a-range")
+ylabel("b-range")
 colorbar
 
-xticklabels = b_range(1:3:end);
-xticks = linspace(1, size(par_change_stds(:,:,2), 2), numel(xticklabels));
+xticklabels = a_range(1:2:end);
+xticks = linspace(1, size(stds_par(:,:,2), 2), numel(xticklabels));
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 
-yticklabels = a_range(1:2:end);
-yticks = linspace(1, size(par_change_stds(:,:,2), 1), numel(yticklabels));
-set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
+yticklabels = b_range(21);
+yticks = linspace(1, size(stds_par(21,:,2), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 
 
-%Check mean and std dev for [1;1] input
-b_range(16)
 
-figure;
-plot(a_range,par_change_mean(16,:,1))
-hold on
-plot(a_range,par_change_mean(16,:,2))
+
+%CHECK: look at the [1,1] input over the a-range. This should give the same
+%plots as before
+b_range(21)
 
 figure;
-plot(a_range,par_change_stds(16,:,1))
+subplot(1,2,1)
+plot(a_range,mean_par(21,:,1), 'LineWidth', 1.5);
 hold on
-plot(a_range,par_change_stds(16,:,2))
+plot(a_range,mean_par(21,:,2), 'LineWidth', 1.5)
+legend("E","I", 'AutoUpdate','off')
+title("mean rate")
+ylabel("rate")
+xlabel("h")
 
 
+subplot(1,2,2)
+plot(a_range,stds_par(21,:,1), 'LineWidth', 1.5)
+hold on
+plot(a_range,stds_par(21,:,2), 'LineWidth', 1.5)
+legend("E","I", 'AutoUpdate','off')
+title("std dev. rate")
+ylabel("rate")
+xlabel("h")
+
+
+%ZOOM: only plot values for a_range =< 5 (look at stds)
+a_range(11) 
+
+figure;
+subplot(2,2,1)
+imagesc(mean_par(:,1:11,1))
+title("mean rate E")
+xlabel("a-range")
+ylabel("b-range")
+colorbar
+
+xticklabels = a_range(1:11);
+xticks = linspace(1, size(mean_par(:,1:11,1), 2), numel(xticklabels));
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+
+yticklabels = b_range(1:2:end);
+yticks = linspace(1, size(mean_par(:,:,1), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+
+
+subplot(2,2,2)
+imagesc(mean_par(:,1:11,2))
+title("mean rate I")
+xlabel("a-range")
+ylabel("b-range")
+colorbar
+
+xticklabels = a_range(1:11);
+xticks = linspace(1, size(mean_par(:,1:11,2), 2), numel(xticklabels));
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+
+yticklabels = b_range(1:2:end);
+yticks = linspace(1, size(mean_par(:,:,2), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+
+
+subplot(2,2,3)
+imagesc(stds_par(:,1:11,1))
+title("std dev rate E")
+xlabel("a-range")
+ylabel("b-range")
+colorbar
+
+xticklabels = a_range(1:11);
+xticks = linspace(1, size(stds_par(:,1:11,1), 2), numel(xticklabels));
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+
+yticklabels = b_range(1:2:end);
+yticks = linspace(1, size(stds_par(:,:,1), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+
+
+subplot(2,2,4)
+imagesc(stds_par(:,1:11,2))
+title("std dev rate I")
+xlabel("a-range")
+ylabel("b-range")
+colorbar
+
+xticklabels = a_range(1:11);
+xticks = linspace(1, size(stds_par(:,1:11,2), 2), numel(xticklabels));
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+
+yticklabels = b_range(1:2:end);
+yticks = linspace(1, size(stds_par(:,:,2), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+
+
+
+%CHECK: look at individual inputs [...,...] to check with 2D plot
+idx_b = 11;
+b_range(idx_b)
+
+figure;
+subplot(1,2,1)
+plot(a_range,mean_par(idx_b,:,1), 'LineWidth', 1.5);
+hold on
+plot(a_range,mean_par(idx_b,:,2), 'LineWidth', 1.5)
+legend("E","I", 'AutoUpdate','off')
+title("mean rate")
+ylabel("rate")
+xlabel("h")
+
+
+subplot(1,2,2)
+plot(a_range,stds_par(idx_b,:,1), 'LineWidth', 1.5)
+hold on
+plot(a_range,stds_par(idx_b,:,2), 'LineWidth', 1.5)
+legend("E","I", 'AutoUpdate','off')
+title("std dev. rate")
+ylabel("rate")
+xlabel("h")
 
 %% Parameter search CHECK
 a_range = (0:1:20);
