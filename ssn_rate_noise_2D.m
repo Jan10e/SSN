@@ -354,7 +354,7 @@ set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 % set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
 % 
 
-
+%% Check values
 %CHECK: only plot input [1;1]
 b_range(21) 
 
@@ -450,6 +450,7 @@ ylabel("rate")
 xlabel("h")
 
 
+%% Look for potential b-values that represent state
 %ZOOM: only plot values for a_range =< 5 (look at stds)
 a_range(11) 
 
@@ -542,6 +543,177 @@ legend("E","I", 'AutoUpdate','off')
 title("std dev. rate")
 ylabel("rate")
 xlabel("h")
+
+
+%ZOOM: b-values -0.4:3 in zoomed in a-range
+b_range(14) 
+
+figure;
+subplot(2,2,1)
+imagesc(mean_par(14:24,1:11,1))
+title("mean rate E")
+xlabel("a-range")
+ylabel("b-range")
+colorbar
+
+xticklabels = a_range(1:11);
+xticks = linspace(1, size(mean_par(:,1:11,1), 2), numel(xticklabels));
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+
+yticklabels = b_range(14:24);
+yticks = linspace(1, size(mean_par(14:24,:,1), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+
+
+subplot(2,2,2)
+imagesc(mean_par(14:24,1:11,2))
+title("mean rate I")
+xlabel("a-range")
+ylabel("b-range")
+colorbar
+
+xticklabels = a_range(1:11);
+xticks = linspace(1, size(mean_par(:,1:11,2), 2), numel(xticklabels));
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+
+yticklabels = b_range(14:24);
+yticks = linspace(1, size(mean_par(14:24,:,2), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+
+
+subplot(2,2,3)
+imagesc(stds_par(14:24,1:11,1))
+title("std dev rate E")
+xlabel("a-range")
+ylabel("b-range")
+colorbar
+
+xticklabels = a_range(1:11);
+xticks = linspace(1, size(stds_par(:,1:11,1), 2), numel(xticklabels));
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+
+yticklabels = b_range(14:24);
+yticks = linspace(1, size(stds_par(14:24,:,1), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+
+
+subplot(2,2,4)
+imagesc(stds_par(14:24,1:11,2))
+title("std dev rate I")
+xlabel("a-range")
+ylabel("b-range")
+colorbar
+
+xticklabels = a_range(1:11);
+xticks = linspace(1, size(stds_par(:,1:11,2), 2), numel(xticklabels));
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+
+yticklabels = b_range(14:24);
+yticks = linspace(1, size(stds_par(14:24,:,2), 1), numel(yticklabels));
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+
+
+%Plotting b-range zoom
+% loop through b-range(14:24)
+figure;
+for n=1:length(b_range(14:24))
+    
+    idx = 14+ (n-1);
+    
+    %E only
+    subplot(1,2,1)
+    plot(a_range(1:11),mean_par(idx,1:11,1), 'LineWidth', 1);
+    hold on
+    legend(strcat('b =', num2str(b_range(14:24)')))
+    title("mean rate")
+    ylabel("rate")
+    xlabel("a-range")
+
+    subplot(1,2,2)
+    plot(a_range(1:11),stds_par(idx,1:11,1), 'LineWidth', 1)
+    hold on
+    legend(strcat('b =', num2str(b_range(14:24)')))
+    title("std dev. rate")
+    ylabel("rate")
+    xlabel("a-range")
+end
+
+figure;
+for n=1:length(b_range(14:24))
+    
+    idx = 14+ (n-1);
+
+    %I only
+    subplot(1,2,1)
+    plot(a_range(1:11),mean_par(idx,1:11,2), 'LineWidth', 1)
+    hold on
+    legend(strcat('b =', num2str(b_range(14:24)')))
+    title("mean rate")
+    ylabel("rate")
+    xlabel("a-range")
+
+    subplot(1,2,2)
+    plot(a_range(1:11),stds_par(idx,1:11,2), 'LineWidth', 1)
+    hold on
+    legend(strcat('b =', num2str(b_range(14:24)')))
+    title("std dev. rate")
+    ylabel("rate")
+    xlabel("a-range")
+end
+
+
+
+%Plotting b-range 
+%b-range 1 is
+b_range(21)
+
+%b-range 0, -0.2, -0.4 is idx 16, 15, 14
+b_range(16)
+
+num = [21,16,15,14];
+figure;
+for n=1:length(b_range([21,16,15,14]))
+    
+    idx = num(n);
+
+    %E only
+    subplot(1,2,1)
+    plot(a_range(1:11),mean_par(idx,1:11,1), 'LineWidth', 1);
+    hold on
+    legend(strcat('b =', num2str(b_range([21,16,15,14])')))
+    title("mean rate")
+    ylabel("rate")
+    xlabel("a-range")
+
+    subplot(1,2,2)
+    plot(a_range(1:11),stds_par(idx,1:11,1), 'LineWidth', 1)
+    hold on
+    legend(strcat('b =', num2str(b_range([21,16,15,14])')))
+    title("std dev. rate")
+    ylabel("rate")
+    xlabel("a-range")
+end
+
+figure;
+for n=1:length(b_range([21,16,15,14]))    
+    idx = num(n);
+    %I only
+    subplot(1,2,1)
+    plot(a_range(1:11),mean_par(idx,1:11,2), 'LineWidth', 1)
+    hold on
+    legend(strcat('b =',num2str(b_range([21,16,15,14])')))
+    title("mean rate")
+    ylabel("rate")
+    xlabel("a-range")
+
+    subplot(1,2,2)
+    plot(a_range(1:11),stds_par(idx,1:11,2), 'LineWidth', 1)
+    hold on
+    legend(strcat('b =', num2str(b_range([21,16,15,14])')))
+    title("std dev. rate")
+    ylabel("rate")
+    xlabel("a-range")
+end
 
 %% Parameter search CHECK
 a_range = (0:1:20);
