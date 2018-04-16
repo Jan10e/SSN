@@ -45,7 +45,7 @@ tau_I = 0.01
 tau = sp.array([tau_E, tau_I])
 
 # external forcing
-h = sp.ones(2)*2
+h = sp.ones(2)*30
 
 # initial and time vector
 u_0 = sp.array([-60, -80])
@@ -75,6 +75,7 @@ def df(u, t):
 def df_sol(u):
     du = ((-u + V_rest) + sp.dot(Ww, (Kk*ReLU(u - V_rest)**Nn)) + h)/tau
     return du
+
 
 
 ######################################
@@ -114,7 +115,7 @@ plt.show()
 ########################################################################
 
 # For single initial points
-u_E, u_I = -60., -80.
+u_E, u_I = -70., -70.
 
 guess = sp.array([u_E, u_I])
 sol = broyden1(df_sol, guess, verbose=1)
@@ -143,6 +144,8 @@ for idx in seeds:
 
 plt.figure(2)
 plt.scatter(fix_pts[:,0], fix_pts[:,1]) #first axis is v_E, second axis is v_I
+plt.xlabel('voltage E')
+plt.ylabel('voltage I')
 #plt.ylim([-80, -60])
 #plt.xlim([-80, -60])
 plt.show
