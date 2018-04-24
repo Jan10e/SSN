@@ -451,70 +451,6 @@ xlabel("h")
 
 
 
-%% Cross correlogram
-% create cross corr for b = 1, and a = 2 & 15 to resembles Hennequin fig1E
-
-% a =2, E and I cells
-idx_b = b_range == 1;
-idx_a = a_range == 2;
-
-dat_a2 = squeeze(par_change(idx_b,idx_a,:,:))';
-dat_a2n = dat_a2 - mean(dat_a2,1); %substract mean value of time trace
-
-[corr_2,lags_2] = xcorr(dat_a2n, 'coeff');
-
-
-% a =15, E and I cells
-idx_a = a_range == 15;
-
-dat_a15 = squeeze(par_change(idx_b,idx_a,:,:))';
-dat_a15n = dat_a15 - mean(dat_a15,1); 
-
-[corr_15,lags_15] = xcorr(dat_a15n, 'coeff');
-
-
-titles = {'r_E - r_E','r_E - r_I','r_I - r_E','r_I - r_I'};
-figure;
-for row = 1:2
-    for col = 1:2
-        nm = 2*(row-1)+col;
-        subplot(2,2,nm)
-        stem(lags_2,corr_2(:,nm),'.')
-        hold on
-        stem(lags_15, corr_15(:,nm), '.')
-        %title(sprintf('E/I_{%d%d}',row,col))
-        title(titles{1,nm})
-        ylim([0 1])
-        xlim([-200 200])
-        ylabel('corr.')
-        xlabel('time lag (ms)')
-        legend('a=2', 'a=15')
-    end
-end
-
-
-%change tau noise and run it again to look for effect on cross corr
-% saved under: par_change-b-3-3-Tn10.mat
-
-
-
-
-% %Check: restrict calculations to lags between -0.2 and 0.2 seconds (200 ms)
-% [corr_2,lags_2] = xcorr(dat_a2,200,'coeff');
-% 
-% figure;
-% for row = 1:2
-%     for col = 1:2
-%         nm = 2*(row-1)+col;
-%         subplot(2,2,nm)
-%         stem(lags_2,corr_2(:,nm),'.')
-%         title(sprintf('E/I_{%d%d}',row,col))
-%         ylim([0 1])
-%         xlim([-200 200])
-%     end
-% end
-
-
 %% Indicate b-values that give a high std dev compared to b = 1
 % look at the mean value for std dev in the a-range 10-15
 
@@ -903,6 +839,250 @@ for n=1:length(num)
     ylabel("rate")
     xlabel("a-range")
 end
+
+
+
+
+%% Cross correlogram
+% create cross corr for b = 1, and a = 2 & 15 to resembles Hennequin fig1E
+
+% a =2, E and I cells
+idx_b = b_range == 1;
+idx_a = a_range == 2;
+
+dat_a2 = squeeze(par_change(idx_b,idx_a,:,:))';
+dat_a2n = dat_a2 - mean(dat_a2,1); % Normalize: substract mean value of time trace
+
+[corr_2,lags_2] = xcorr(dat_a2n, 'coeff');
+
+
+% a =15, E and I cells
+idx_a = a_range == 15;
+
+dat_a15 = squeeze(par_change(idx_b,idx_a,:,:))';
+dat_a15n = dat_a15 - mean(dat_a15,1); 
+
+[corr_15,lags_15] = xcorr(dat_a15n, 'coeff');
+
+
+titles = {'r_E - r_E','r_E - r_I','r_I - r_E','r_I - r_I'};
+figure;
+for row = 1:2
+    for col = 1:2
+        nm = 2*(row-1)+col;
+        subplot(2,2,nm)
+        stem(lags_2,corr_2(:,nm),'.')
+        hold on
+        stem(lags_15, corr_15(:,nm), '.')
+        %title(sprintf('E/I_{%d%d}',row,col))
+        title(titles{1,nm})
+        ylim([0 1])
+        xlim([-200 200])
+        ylabel('corr.')
+        xlabel('time lag (ms)')
+        legend('a=2', 'a=15')
+    end
+end
+
+
+%change tau noise and run it again to look for effect on cross corr
+% saved under: par_change-b-3-3-Tn10.mat
+
+
+%% Noise correlation as integral under cross-corr
+% Spike count correlation are proportional to the integral under the spike
+% train cross-correlaogram (Cohen & Kohn, 2011)
+
+% Restrict calculations to lags between -0.2 and 0.2 seconds (200 ms)
+[corr_2,lags_2] = xcorr(dat_a2n,200,'coeff');
+[corr_15,lags_15] = xcorr(dat_a15n,200,'coeff');
+
+% In corr_n, column 1 = E/E; c2 = E/I; c3= I/E; c4 = I/I
+% sum over corr values from lag -200 to 200
+
+for i = 1:size(corr_2,2)
+    intg_2(:,i) = trapz(corr_2(:,i)); %using trapezoidal  rule for definite integral
+end
+
+for i = 1:size(corr_15,2)
+    intg_15(:,i) = trapz(corr_15(:,i)); %using trapezoidal  rule for definite integral
+end
+
+figure;
+stem(intg_2, 'filled', 'g')
+hold on
+stem(intg_15, 'filled', 'r')
+hold on
+
+% Compare integration trend with half-way value (0.5) trend
+% find 0.5
+mid2 = corr_2(1:round(length(corr_2)/2),:); %restrict to halve of the distribution, otherwise you get two values for 0.5
+[corr2_val, corr2_idx] = min(abs(mid2-0.5));
+%get lag time
+lag_mid2 = abs(lags_2(corr2_idx));
+
+mid15 = corr_15(1:round(length(corr_15)/2),:); 
+[corr15_val, corr15_idx] = min(abs(mid15-0.5));
+%get lag time
+lag_mid15 = abs(lags_15(corr15_idx));
+
+
+stem(lag_mid2,'g')
+hold on
+stem(lag_mid15,'r')
+legend('integral h=2', 'integral h =15', 'mid h=2', 'mid h=15')
+
+%Result: seems to follow similar trend. I will continue with the integral
+%of the cross correlograms
+
+
+%% Integral cross-corr for a and b
+%corr_ab = zeros((2*length(t))-1,4, length(b_range), length(a_range));
+for b = 1:length(b_range)
+    
+    % update b_range input
+    fprintf('\n b-range: %d\n\n', b_range(b))
+    
+    for a = 1:length(a_range)
+        
+        %create normalized data
+        dat_a = squeeze(par_change(b,a,:,:))';
+        dat_an = dat_a - mean(dat_a,1); % Normalize: substract mean value of time trace
+        
+        %get cross correlogram for lags between 200ms
+        [corr_a,lags_ab] = xcorr(dat_an, 200, 'coeff');
+        
+        corr_ab(:,:,b,a) = corr_a;
+    end
+    
+end
+
+
+%Get integral
+for i = 1:size(corr_ab,3)
+    for j = 1:size(corr_ab,4)
+        for k = 1:size(corr_ab,2)
+            intg(:,k,i,j) = trapz(corr_ab(:,k,i,j));
+        end
+    end
+end
+
+
+%get separate areas
+intg_EE = squeeze((intg(:,1,:,:)));
+intg_EI = squeeze((intg(:,2,:,:)));
+intg_IE = squeeze((intg(:,3,:,:)));
+intg_II = squeeze((intg(:,4,:,:)));
+
+% mesh plot for integral values over range a and b
+figure;
+xticklabels = a_range(1:4:end);
+xticks = linspace(1, size(intg, 3), numel(xticklabels));
+yticklabels = b_range(1:4:end);
+yticks = linspace(1, size(intg, 4), numel(yticklabels));
+
+subplot(2,2,1)
+surf(intg_EE, 'FaceAlpha',0.5)
+title('r_E - r_E')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('integral')
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+subplot(2,2,2)
+surf(intg_EI, 'FaceAlpha',0.5)
+title('r_E - r_I')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('integral')
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+subplot(2,2,3)
+surf(intg_IE, 'FaceAlpha',0.5)
+title('r_I - r_E')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('integral')
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+subplot(2,2,4)
+surf(intg_II, 'FaceAlpha',0.5)
+title('r_I - r_I')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('integral')
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+
+
+
+% separate plot for a=2 different b (1.6, 0.2, 0, -1.4)
+find(b_range == 1)
+
+titles = {'r_E - r_E','r_E - r_I','r_I - r_E','r_I - r_I'};
+figure;
+for row = 1:2
+    for col = 1:2
+        nm = 2*(row-1)+col;
+        subplot(2,2,nm)
+        stem(lags_ab,corr_ab(:,nm,21,5),'.','LineWidth', 2, 'LineStyle','none') %b=1
+        hold on
+        stem(lags_ab,corr_ab(:,nm,24,5),'.','LineWidth', 2, 'LineStyle','none') %b=1.6
+        hold on
+        stem(lags_ab,corr_ab(:,nm,17,5), '.','LineWidth', 2, 'LineStyle','none') %b=0.2
+        hold on
+        stem(lags_ab,corr_ab(:,nm,16,5), '.','LineWidth', 2, 'LineStyle','none') %b=0
+        hold on
+        stem(lags_ab,corr_ab(:,nm,9,5), '.','LineWidth', 2, 'LineStyle','none') %b=-1.4
+        title(titles{1,nm})
+        ylim([0 1])
+        ylabel('corr.')
+        xlabel('time lag (ms)')
+        legend('b=1', 'b=1.6', 'b=0.2', 'b=0', 'b=-1.4')
+    end
+end
+
+
+% separate plot for a=15 different b (1.6, 0.2, 0, -1.4)
+find(b_range == 1)
+
+titles = {'r_E - r_E','r_E - r_I','r_I - r_E','r_I - r_I'};
+figure;
+for row = 1:2
+    for col = 1:2
+        nm = 2*(row-1)+col;
+        subplot(2,2,nm)
+        stem(lags_ab,corr_ab(:,nm,21,31),'.', 'LineWidth', 2, 'LineStyle','none') %b=1
+        hold on
+        stem(lags_ab,corr_ab(:,nm,24,31),'.','LineWidth', 2, 'LineStyle','none') %b=1.6
+        hold on
+        stem(lags_ab,corr_ab(:,nm,17,31),'.', 'LineWidth', 2, 'LineStyle','none') %b=0.2
+        hold on
+        stem(lags_ab,corr_ab(:,nm,16,31),'.', 'LineWidth', 2, 'LineStyle','none') %b=0
+        hold on
+        stem(lags_ab,corr_ab(:,nm,9,31),'.', 'LineWidth', 2, 'LineStyle','none') %b=-1.4
+        title(titles{1,nm})
+        ylim([0 1])
+        ylabel('corr.')
+        xlabel('time lag (ms)')
+        legend('b=1', 'b=1.6', 'b=0.2', 'b=0', 'b=-1.4')
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
