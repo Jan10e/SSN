@@ -143,23 +143,6 @@ end
 %saveas(gcf, [pwd '/figures/2Drate_h0215.png'])
 
 
-%% Get Noise Correlations (NC)
-%High NC at what rate and h
-[ncHigh_E, ncHigh_idxE]= max(stds_range(1,:));
-[ncHigh_I, ncHigh_idxI] = max(stds_range(2,:));
-
-ncHigh_hE = h_range(ncHigh_idxE);
-ncHigh_hI = h_range(ncHigh_idxI);
-
-
-% Smallest NC, starting at the high NC of matrix to avoid low NC between h=0-2
-[ncLow_E, ncLow_idxE]= min(stds_range(1,ncHigh_idxE:end));
-[ncLow_I, ncLow_idxI]= min(stds_range(2,ncHigh_idxI:end));
-
-ncLow_hE = h_range(ncLow_idxE);
-ncLow_hI = h_range(ncLow_idxI);
-
-
 
 %% Parameter search with 2D plot. 
 % Find the values for parameter setting (h_tot) in arousal/locomotion and attention
@@ -168,10 +151,6 @@ ncLow_hI = h_range(ncLow_idxI);
 a_range = (0:0.5:15);
 b_range = (-3:0.2:3); %range for I cell parameter values
 par_change = zeros(length(b_range),length(a_range), 2, length(t));
-%stds_range_a = zeros(length(a_range),2);
-%mean_range_a = zeros(length(a_range),2);
-%par_change_mean = zeros(length(b_range),length(a_range),2);
-%par_change_stds = zeros(length(b_range),length(a_range),2);
 for b = 1:length(b_range)
     
     % update h_range input
@@ -202,18 +181,8 @@ for b = 1:length(b_range)
           % add u to matrix 
             par_change(b,a,:,:) = u;
         
-          %stats
-            %mean_range_a(a,:) = mean(u,2);
-            %stds_range_a(a,:) = std(u, 0, 2); 
-        
     end
-    
-            %par_change_mean(b,:,:) = mean_range_a;
-            %par_change_stds(b,:,:) = stds_range_a;  
-    
 end
-
-%par_change_noTrans(:,:,:,:) = par_change(:,:,:,101:end);
 
 %stats using 4D matrix
 mean_par = mean(par_change, 4);
@@ -290,71 +259,27 @@ set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 
 
 
-%stats using 3D matrices for mean and stds CHECK
-% figure;
-% subplot(2,2,1)
-% imagesc(par_change_mean(:,:,1))
-% title("mean rate E")
-% ylabel("a-range")
-% xlabel("b-range")
-% colorbar
-% 
-% xticklabels = b_range(1:3:end);
-% xticks = linspace(1, size(par_change_mean(:,:,1), 2), numel(xticklabels));
-% set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
-% 
-% yticklabels = a_range(1:2:end);
-% yticks = linspace(1, size(par_change_mean(:,:,1), 1), numel(yticklabels));
-% set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
-% 
-% 
-% subplot(2,2,2)
-% imagesc(par_change_mean(:,:,2))
-% title("mean rate I")
-% ylabel("a-range")
-% xlabel("b-range")
-% colorbar
-% 
-% xticklabels = b_range(1:3:end);
-% xticks = linspace(1, size(par_change_mean(:,:,2), 2), numel(xticklabels));
-% set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
-% 
-% yticklabels = a_range(1:2:end);
-% yticks = linspace(1, size(par_change_mean(:,:,2), 1), numel(yticklabels));
-% set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
-% 
-% 
-% subplot(2,2,3)
-% imagesc(par_change_stds(:,:,1))
-% title("std dev E")
-% ylabel("a-range")
-% xlabel("b-range")
-% colorbar
-% 
-% xticklabels = b_range(1:3:end);
-% xticks = linspace(1, size(par_change_stds(:,:,1), 2), numel(xticklabels));
-% set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
-% 
-% yticklabels = a_range(1:2:end);
-% yticks = linspace(1, size(par_change_stds(:,:,1), 1), numel(yticklabels));
-% set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
-% 
-% 
-% subplot(2,2,4)
-% imagesc(par_change_stds(:,:,2))
-% title("std dev I")
-% ylabel("a-range")
-% xlabel("b-range")
-% colorbar
-% 
-% xticklabels = b_range(1:3:end);
-% xticks = linspace(1, size(par_change_stds(:,:,2), 2), numel(xticklabels));
-% set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
-% 
-% yticklabels = a_range(1:2:end);
-% yticks = linspace(1, size(par_change_stds(:,:,2), 1), numel(yticklabels));
-% set(gca, 'YTick', yticks, 'YTickLabel', flipud(yticklabels(:)))
-% 
+
+%% Identify transient
+%transient might affect results. Look at the time trace to identify and
+%exclude transient
+
+trans = squeeze(par_change(1,:,1,:)); %matrix for first input b and E cells
+
+figure;
+plot(t, trans) %zoom into very beginning
+xlabel("time")
+ylabel("u")
+
+%seems that transient is before t = 0.1
+find(t == 0.1) %idx = 101
+
+par_change_trans(:,:,:,:) = par_change(:,:,:,101:end);
+
+% mean and std
+mean_par_trans = mean(par_change_trans, 4);
+stds_par_trans= std(par_change_trans,0,4);
+
 
 %% Check values for similar input
 %CHECK: only plot input [1;1]
@@ -447,7 +372,6 @@ legend("E","I", 'AutoUpdate','off')
 title("std dev. rate")
 ylabel("rate")
 xlabel("h")
-
 
 
 
@@ -741,7 +665,6 @@ yticks = linspace(1, size(stds_par2(:,:,2), 1), numel(yticklabels));
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 
 
-
 %mesh plots
 figure;
 xticklabels = a_range2(1:4:end);
@@ -842,7 +765,6 @@ end
 
 
 
-
 %% Cross correlogram
 % create cross corr for b = 1, and a = 2 & 15 to resembles Hennequin fig1E
 
@@ -850,7 +772,7 @@ end
 idx_b = b_range == 1;
 idx_a = a_range == 2;
 
-dat_a2 = squeeze(par_change(idx_b,idx_a,:,:))';
+dat_a2 = squeeze(par_change_trans(idx_b,idx_a,:,:))';
 dat_a2n = dat_a2 - mean(dat_a2,1); % Normalize: substract mean value of time trace
 
 [corr_2,lags_2] = xcorr(dat_a2n, 'coeff');
@@ -859,7 +781,7 @@ dat_a2n = dat_a2 - mean(dat_a2,1); % Normalize: substract mean value of time tra
 % a =15, E and I cells
 idx_a = a_range == 15;
 
-dat_a15 = squeeze(par_change(idx_b,idx_a,:,:))';
+dat_a15 = squeeze(par_change_trans(idx_b,idx_a,:,:))';
 dat_a15n = dat_a15 - mean(dat_a15,1); 
 
 [corr_15,lags_15] = xcorr(dat_a15n, 'coeff');
@@ -874,7 +796,6 @@ for row = 1:2
         stem(lags_2,corr_2(:,nm),'.')
         hold on
         stem(lags_15, corr_15(:,nm), '.')
-        %title(sprintf('E/I_{%d%d}',row,col))
         title(titles{1,nm})
         ylim([0 1])
         xlim([-200 200])
@@ -946,7 +867,7 @@ for b = 1:length(b_range)
     for a = 1:length(a_range)
         
         %create normalized data
-        dat_a = squeeze(par_change(b,a,:,:))';
+        dat_a = squeeze(par_change_trans(b,a,:,:))';
         dat_an = dat_a - mean(dat_a,1); % Normalize: substract mean value of time trace
         
         %get cross correlogram for lags between 200ms
@@ -1072,7 +993,44 @@ end
 
 
 
+%% Fano factors
 
+%get variance (std dev^2)
+var_par = stds_par.^2;
+% FF = var / mean
+FF_par = var_par./mean_par;
+
+%get FF for data without transient
+var_par_trans = stds_par_trans.^2;
+FF_par_trans = var_par_trans./mean_par_trans;
+
+%plot
+figure;
+
+xticklabels = a_range(1:4:end);
+xticks = linspace(1, size(FF_par_trans(:,:,1), 1), numel(xticklabels));
+yticklabels = b_range(1:2:end);
+yticks = linspace(1, size(FF_par_trans(:,:,1), 2), numel(yticklabels));
+
+subplot(2,1,1)
+surf(FF_par_trans(:,:,1), 'FaceAlpha',0.5)
+legend("E","I", 'AutoUpdate','off')
+title("FF E")
+xlabel("a-range")
+ylabel("b-range")
+zlabel("FF")
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+
+subplot(2,1,2)
+surf(FF_par_trans(:,:,2), 'FaceAlpha',0.5)
+legend("E","I", 'AutoUpdate','off')
+title("FF I")
+xlabel("a-range")
+ylabel("b-range")
+zlabel("FF")
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 
 
 
