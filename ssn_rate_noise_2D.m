@@ -867,7 +867,7 @@ for b = 1:length(b_range)
     for a = 1:length(a_range)
         
         %create normalized data
-        dat_a = squeeze(par_change_trans(b,a,:,:))';
+        dat_a = squeeze(par_change(b,a,:,:))';
         dat_an = dat_a - mean(dat_a,1); % Normalize: substract mean value of time trace
         
         %get cross correlogram for lags between 200ms
@@ -987,6 +987,183 @@ for row = 1:2
         ylabel('corr.')
         xlabel('time lag (ms)')
         legend('b=1', 'b=1.6', 'b=0.2', 'b=0', 'b=-1.4')
+    end
+end
+
+
+
+%% Zoom #3: Integral cross-corr for a 0:5
+a_range3 = (0:0.2:5);
+b_range = (-3:0.2:3); 
+par_change3 = zeros(length(b_range),length(a_range3), 2, length(t));
+for b = 1:length(b_range)
+    
+    % update h_range input
+    fprintf('\n b-range: %d\n\n', b_range(b))
+    
+    for a = 1:length(a_range3) % look over range of I input
+        
+        fprintf('\n a-value: %d\n', a_range3(a))
+    
+        % update I_range input    
+         h = [1;b_range(b)] * a_range3(a);
+         fprintf('E input: %d\n', h(1))
+         fprintf('I input: %d\n', h(2))
+
+    
+        %Generate noise vector
+        for ii = 1:length(t)-1
+            eta(:,ii+1) = eta(:,ii) + (-eta(:,ii) *dt + sqrt(2 .*dt*tau_noise*sigma_a.^2).*(randn(2,1))) *(1./tau_noise);
+        end
+
+        %Integrate neural system with noise forcing
+        for ii = 1: length(eta)-1
+            % Forward Euler step + x(i) which is the noise
+            u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; 
+        end
+     
+        
+          % add u to matrix 
+            par_change3(b,a,:,:) = u;
+        
+    end
+end
+
+
+save('data/par_change-a-0-4.mat', 'par_change')
+save('data/mean_par-a-0-4.mat', 'mean_par')
+save('data/stds_par-a-0-4.mat', 'stds_par')
+
+
+%cross-correlation
+for b = 1:length(b_range)
+    
+    % update b_range input
+    fprintf('\n b-range: %d\n\n', b_range(b))
+    
+    for a = 1:length(a_range3)
+        
+        %create normalized data
+        dat_a3 = squeeze(par_change3(b,a,:,:))';
+        dat_an3 = dat_a3 - mean(dat_a3,1); % Normalize: substract mean value of time trace
+        
+        %get cross correlogram for lags between 200ms
+        [corr_a3,lags_ab3] = xcorr(dat_an3, 200, 'coeff');
+        
+        corr_ab3(:,:,b,a) = corr_a3;
+    end
+    
+end
+
+
+%Get integral
+for i = 1:size(corr_ab3,3)
+    for j = 1:size(corr_ab3,4)
+        for k = 1:size(corr_ab3,2)
+            intg3(:,k,i,j) = trapz(corr_ab3(:,k,i,j));
+        end
+    end
+end
+
+
+%get separate areas
+intg_EE3 = squeeze((intg3(:,1,:,:)));
+intg_EI3 = squeeze((intg3(:,2,:,:)));
+intg_IE3 = squeeze((intg3(:,3,:,:)));
+intg_II3 = squeeze((intg3(:,4,:,:)));
+
+% mesh plot for integral values over range a and b
+figure;
+xticklabels = a_range3(1:2:end);
+xticks = linspace(1, size(intg3, 3), numel(xticklabels));
+yticklabels = b_range(1:4:end);
+yticks = linspace(1, size(intg3, 4), numel(yticklabels));
+
+subplot(2,2,1)
+surf(intg_EE3, 'FaceAlpha',0.5)
+title('r_E - r_E')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('integral')
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+subplot(2,2,2)
+surf(intg_EI3, 'FaceAlpha',0.5)
+title('r_E - r_I')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('integral')
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+subplot(2,2,3)
+surf(intg_IE3, 'FaceAlpha',0.5)
+title('r_I - r_E')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('integral')
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+subplot(2,2,4)
+surf(intg_II3, 'FaceAlpha',0.5)
+title('r_I - r_I')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('integral')
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+
+
+
+
+
+
+
+%% Plot selection b-values -0.6:0.2
+% b=-0.6:0.2 and 1
+num_c = [21,13,14,15,16,17];
+%get corr values for b=-0.6:0.2 for a=2
+corr_2b=corr_ab(:,:,num_c,5);
+%get corr values for b=-0.6:0.2 for a=15
+corr_15b=corr_ab(:,:,num_c,31);
+
+
+titles = {'r_E - r_E','r_E - r_I','r_I - r_E','r_I - r_I'};
+figure;
+for row = 1:2
+    for col = 1:2
+        nm = 2*(row-1)+col;
+        subplot(2,2,nm)
+        for i=1:size(corr_2b,3)
+            stem(lags_ab,corr_2b(:,nm,i),'.', 'LineStyle','none')
+            hold on
+            %stem(lags_ab, corr_15b(:,nm,i), '.', 'LineStyle','none')
+        end
+        title(titles{1,nm})
+        ylim([0 1])
+        xlim([-200 200])
+        ylabel('corr.')
+        xlabel('time lag (ms)')
+        legend('b=1', 'b=-0.6', 'b=-0.4', 'b=-0.2', 'b=0', 'b=0.2')
+    end
+end
+
+
+titles = {'r_E - r_E','r_E - r_I','r_I - r_E','r_I - r_I'};
+figure;
+for row = 1:2
+    for col = 1:2
+        nm = 2*(row-1)+col;
+        subplot(2,2,nm)
+        for i=1:size(corr_2b,3)
+            stem(lags_ab,corr_15b(:,nm,i),'.', 'LineStyle','none')
+            hold on
+        end
+        title(titles{1,nm})
+        ylim([0 1])
+        xlim([-200 200])
+        ylabel('corr.')
+        xlabel('time lag (ms)')
+        legend('b=1', 'b=-0.6', 'b=-0.4', 'b=-0.2', 'b=0', 'b=0.2')
     end
 end
 
