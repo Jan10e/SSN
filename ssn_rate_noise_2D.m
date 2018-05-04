@@ -194,21 +194,19 @@ stds_par= std(par_change,0,4);
 
 % plot stats
 figure;
+xticklabels = a_range(1:2:end);
+xticks = linspace(1, size(mean_par(:,:,1), 2), numel(xticklabels));
+yticklabels = b_range(1:3:end);
+yticks = linspace(1, size(mean_par(:,:,1), 1), numel(yticklabels));
+
 subplot(2,2,1)
 imagesc(mean_par(:,:,1))
 title("mean rate E")
 xlabel("a-range")
 ylabel("b-range")
 colorbar
-
-xticklabels = a_range(1:2:end);
-xticks = linspace(1, size(mean_par(:,:,1), 2), numel(xticklabels));
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
-
-yticklabels = b_range(1:2:end);
-yticks = linspace(1, size(mean_par(:,:,1), 1), numel(yticklabels));
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
-
 
 subplot(2,2,2)
 imagesc(mean_par(:,:,2))
@@ -216,15 +214,8 @@ title("mean rate I")
 xlabel("a-range")
 ylabel("b-range")
 colorbar
-
-xticklabels = a_range(1:2:end);
-xticks = linspace(1, size(mean_par(:,:,2), 2), numel(xticklabels));
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
-
-yticklabels = b_range(1:2:end);
-yticks = linspace(1, size(mean_par(:,:,2), 1), numel(yticklabels));
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
-
 
 subplot(2,2,3)
 imagesc(stds_par(:,:,1))
@@ -232,15 +223,8 @@ title("std dev rate E")
 xlabel("a-range")
 ylabel("b-range")
 colorbar
-
-xticklabels = a_range(1:2:end);
-xticks = linspace(1, size(stds_par(:,:,1), 2), numel(xticklabels));
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
-
-yticklabels = b_range(1:2:end);
-yticks = linspace(1, size(stds_par(:,:,1), 1), numel(yticklabels));
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
-
 
 subplot(2,2,4)
 imagesc(stds_par(:,:,2))
@@ -248,16 +232,48 @@ title("std dev rate I")
 xlabel("a-range")
 ylabel("b-range")
 colorbar
-
-xticklabels = a_range(1:2:end);
-xticks = linspace(1, size(stds_par(:,:,2), 2), numel(xticklabels));
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
-
-yticklabels = b_range(1:2:end);
-yticks = linspace(1, size(stds_par(:,:,2), 1), numel(yticklabels));
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 
+%saveas(gcf, '2Drate_meanstd.png')
 
+
+%mesh plots
+figure;
+subplot(2,2,1)
+surf(mean_par(:,:,1), 'FaceAlpha',0.5)
+title('mean E')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('mean rate')
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+subplot(2,2,2)
+surf(mean_par(:,:,2), 'FaceAlpha',0.5)
+title('mean I')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('mean rate')
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+subplot(2,2,3)
+surf(stds_par(:,:,1), 'FaceAlpha',0.5)
+title('std dev E')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('std dev')
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+subplot(2,2,4)
+surf(stds_par(:,:,2), 'FaceAlpha',0.5)
+title('std dev I')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('st dev')
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+
+%saveas(gcf, '2Drate_meanstd_mesh.png')
 
 
 %% Identify transient
@@ -595,9 +611,9 @@ end
 mean_par2 = mean(par_change2, 4);
 stds_par2= std(par_change2,0,4);
 
-save('data/par_change-b-n02-1.mat', 'par_change')
-save('data/mean_par-b-n02-1.mat', 'mean_par')
-save('data/stds_par-b-n02-1.mat', 'stds_par')
+%save('data/par_change-b-n02-1.mat', 'par_change2')
+%save('data/mean_par-b-n02-1.mat', 'mean_par2')
+%save('data/stds_par-b-n02-1.mat', 'stds_par2')
 
 % plot stats
 figure;
@@ -895,13 +911,53 @@ intg_EI = squeeze((intg(:,2,:,:)));
 intg_IE = squeeze((intg(:,3,:,:)));
 intg_II = squeeze((intg(:,4,:,:)));
 
-% mesh plot for integral values over range a and b
+%plots for integral values over range a and b
 figure;
 xticklabels = a_range(1:4:end);
 xticks = linspace(1, size(intg, 3), numel(xticklabels));
 yticklabels = b_range(1:4:end);
 yticks = linspace(1, size(intg, 4), numel(yticklabels));
 
+subplot(2,2,1)
+imagesc(intg_EE)
+title('r_E - r_E')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('integral')
+colorbar
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+subplot(2,2,2)
+imagesc(intg_EI)
+title('r_E - r_I')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('integral')
+colorbar
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+subplot(2,2,3)
+imagesc(intg_IE)
+title('r_I - r_E')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('integral')
+colorbar
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+subplot(2,2,4)
+imagesc(intg_II)
+title('r_I - r_I')
+xlabel('a-range')
+ylabel('b-range')
+zlabel('integral')
+colorbar
+set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+
+
+% mesh plot for integral values over range a and b
+figure;
 subplot(2,2,1)
 surf(intg_EE, 'FaceAlpha',0.5)
 title('r_E - r_E')

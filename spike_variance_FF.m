@@ -62,6 +62,7 @@ ode_rate = @(t, u, h)  (-u + k.*ReLU(W *u + h).^n)./tau;
 
 
 %% Get rates
+
 h_range = (0:0.5:15);
 rates = zeros(length(h_range), 2, length(t));
 for n = 1:length(h_range)
@@ -98,9 +99,6 @@ trans = find(t == 0.3);
 ratesT = rates(:,:,trans:end);
 tt = t(trans:end);
 
-%ratesE = squeeze(ratesT(:,1,:));
-%ratesI = squeeze(ratesT(:,2,:));
-
 
 %% Spikes: Integrate with stretching window (running area)
 % \delta n_i = \int_0^T \delta r_i(t) dt, with T = time constant
@@ -108,9 +106,10 @@ tt = t(trans:end);
 % window/step size: 200ms
 step = 0.2/dt;
 
-clear x y s 
-
 % Integrate rates to get spikes
+clear x y s 
+s = zeros(1,size(ratesT,2),(round(length(tt)/step)-1));
+spike_strch = zeros(size(ratesT,1),size(ratesT,2),(round(length(tt)/step)-1));
 for i = 1:size(ratesT,1)
     
     % update input
@@ -127,18 +126,26 @@ for i = 1:size(ratesT,1)
      spike_strch(i,:,:) = s;
 end
 
-spikeE = spike_strch(:,1,:);
+% get spikes for individual populations
+spike_strchE = squeeze(spike_strch(:,1,:));
+spike_strchI = squeeze(spike_strch(:,2,:));
+
+% get rates for individual populations
+rateE = squeeze(ratesT(:,1,:));
+rateI = squeeze(ratesT(:,2,:));
 
 
-subplot(221),plot(x,y)
-subplot(222),plot(x(2:end),s(1,1,:))
-
-subplot(223),plot(ratesT(1,1,:))
-subplot(224),plot(spike_strch(1,1,:))
-
-
-
-
+%plot spike for h=2
+figure;
+subplot(221),plot(ratesE(1,:))
+xlabel('time'), ylabel('rates'), title('rates for h=2')
+subplot(222),plot(spikeE(1,:))
+xlabel('time'), ylabel('spikes'),title('spikes for h=2')
+% plot spike over h-range
+subplot(223),plot(ratesE(:,200))
+xlabel('h-range'), ylabel('rates'), title('rates across h-range')
+subplot(224),plot(spikeE(:,200))
+xlabel('h-range'), ylabel('spikes'), title('spikes across h-range')
 
 
 %% Spikes: Integrate with sliding window
@@ -146,13 +153,13 @@ subplot(224),plot(spike_strch(1,1,:))
 % window/step size: 200ms
 step = 0.2/dt;
 
-clear x y s
-
 % number of steps
 num_stps = round(length(ratesT)/step)-1;
 
-spike_stps =zeros(1,num_stps+1);
-spike_h = zeros(size(ratesT,1), num_stps+1);
+% Integrate rates to get spikes
+clear x y s spike_stps spike_h
+spike_stps =zeros(1,size(ratesT,2),num_stps+1);
+spike_h = zeros(size(ratesT,1), size(ratesT,2), num_stps+1);
 for i = 1:size(ratesT,1)
     
     disp(i)
@@ -177,10 +184,25 @@ for i = 1:size(ratesT,1)
     
 end
 
-subplot(211),plot(ratesT(:,1,43))
-subplot(212),plot(spike_h(:,1,43))
+% get spikes for individual populations
+spike_stepE = squeeze(spike_h(:,1,:));
+spike_stepI = squeeze(spike_h(:,2,:));
 
+%plot spike for h=2
+figure;
+subplot(221),plot(ratesE(1,:))
+xlabel('time'), ylabel('rates'), title('rates for h=2')
+subplot(222),plot(spike_stepE(1,:))
+xlabel('time'), ylabel('spikes'),title('spikes for h=2')
+% plot spike over h-range
+subplot(223),plot(ratesE(:,200))
+xlabel('h-range'), ylabel('rates'), title('rates across h-range')
+subplot(224),plot(spike_stepE(:,200))
+xlabel('h-range'), ylabel('spikes'), title('spikes across h-range')
 
 
 %% Variance
 % double integral for two time point over time constant
+
+
+

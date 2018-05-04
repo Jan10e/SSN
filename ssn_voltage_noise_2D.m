@@ -79,6 +79,13 @@ for nn = 1:length(h_range)
     mean_range(:,nn) = mean(u, 2);
     stds_range(:,nn)= std(u,0,2);
     
+    
+    ode_rate = @(t, u, h)  (-u + k.*ReLU(W *u + h).^b)./tau;
+
+
+ode = @(t, u, h)  ((-u + V_rest) + W*(k.*ReLU(u - V_rest).^n) + h)./tau;
+    
+    
     % Get rates
     R = k.*ReLU(u - V_rest).^n;
     rate(:,nn) = mean(R, 2);
