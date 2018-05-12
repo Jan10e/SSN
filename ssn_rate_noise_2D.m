@@ -144,7 +144,7 @@ end
 
 
 
-%% Parameter search with 2D plot. 
+%% Parameter search with one independent parameter
 % Find the values for parameter setting (h_tot) in arousal/locomotion and attention
 % h_tot = a * [1;b], a = h_range, b = I_range
 
@@ -207,6 +207,8 @@ stds_par= std(par_change,0,4);
 
 figure;
 % for a*[1;b]
+E_range = (0:0.5:15);
+I_range = (-3:0.2:3); 
 xticklabels = E_range(1:4:end);
 xticks = linspace(1, size(mean_par(:,:,1), 2), numel(xticklabels));
 yticklabels = I_range(1:3:end);
@@ -255,7 +257,7 @@ colorbar
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 
-saveas(gcf, '2Drate_meanstd_b-8-8.png')
+%saveas(gcf, 'figures/2Drate_meanstd_b-8-8.png')
 
 
 %mesh plots
@@ -293,7 +295,7 @@ zlabel('st dev')
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 
-%saveas(gcf, '2Drate_meanstd_mesh_b-8-8.png')
+%saveas(gcf, 'figures/2Drate_meanstd_mesh_b-8-8.png')
 
 
 
@@ -301,23 +303,8 @@ set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 % plot h_I input. This should spread out
 plot(h_range(:,:,2))
 
-%find coordinates of increasing input and create matrix (a, ab) with data and empty
-%spots
-% hI = h_range(:,:,2);
-% 
-% [hI_axis, ia, idx_hI] = unique(hI, 'sorted');
-% 
-% hI_sort = hI_axis(idx_hI); %creates 1 vector from the hI matrix
-% 
 mean_parE = mean_par(:,:,1);
 stds_parE = stds_par(:,:,1);
-% mean_parE_s = mean_par(idx_hI); %get corresponding mean values to hI_sort for E
-% 
-% hI_meanE = horzcat(hI_sort, mean_parE_s);
-% hI_meanE_s = sortrows(hI_meanE);
-% 
-% figure;
-% plot(hI_meanE_s(:,1), hI_meanE_s(:,2))
 
 figure;
 subplot(2,1,1)
@@ -363,10 +350,10 @@ stds_par_trans= std(par_change_trans,0,4);
 
 
 %% Plots without transient
-
 mean_parE_trans = mean_par_trans(:,:,1);
 stds_parE_trans = stds_par_trans(:,:,1);
 
+%surf
 figure;
 subplot(2,1,1)
 x = h_range(:,:,1);
@@ -383,6 +370,34 @@ x = h_range(:,:,1);
 y = h_range(:,:,2);
 C = stds_parE_trans';
 surf(x,y, C);
+set(gca,'zscale','log');
+title('std dev E')
+xlabel('hE')
+ylabel('hI')
+colorbar
+
+
+%pcolor
+figure;
+subplot(2,1,1)
+x = h_range(:,:,1);
+y = h_range(:,:,2);
+C = mean_parE_trans';
+pcolor(x,y, C);
+hold on
+contour(C, [1 1],'color','r','lineWidth',1) %highlight [1;1] input
+title('mean rate E')
+xlabel('hE')
+ylabel('hI')
+colorbar
+
+subplot(2,1,2)
+x = h_range(:,:,1); %E input 0:15
+y = h_range(:,:,2); %I input (0:15)*(-3:3) 
+C = stds_parE_trans';
+pcolor(x,y, C);
+hold on
+contour(C, [1.0 1.0],'color','r','lineWidth',1) %highlight [1;1] input
 title('std dev E')
 xlabel('hE')
 ylabel('hI')
@@ -390,12 +405,75 @@ colorbar
 
 
 
+%% Parameter search with one independent var and added spontaneous [2;2]
+% h_tot = a * [1;b], a = h_range, b = I_range
+clear h h_range par_change mean_par stds_par
+
+E_range = (0:0.5:15);
+I_range = (-3:0.2:3); %range for I cell parameter values
+%par_change = zeros(length(I_range),length(E_range), 2, length(t));
+tic
+for e = 1:length(E_range)
+    
+    % update h_range input
+    fprintf('\n E-range: %d\n\n', E_range(e))
+    
+    for i = 1:length(I_range) % look over range of I input
+        
+        fprintf('\n I-value: %d\n', I_range(i))
+    
+        % update I_range input    
+        h = ([1;I_range(i)] * E_range(e)) + [2;2];
+        % h = [E_range(e); I_range(i)];
+         fprintf('E input: %d\n', h(1))
+         fprintf('I input: %d\n', h(2))
+         
+         h_range(e,i,:) = h;
+
+    
+        %Generate noise vector
+        for ii = 1:length(t)-1
+            eta(:,ii+1) = eta(:,ii) + (-eta(:,ii) *dt + sqrt(2 .*dt*tau_noise*sigma_a.^2).*(randn(2,1))) *(1./tau_noise);
+        end
+
+        %Integrate neural system with noise forcing
+        for ii = 1: length(eta)-1
+            % Forward Euler step + x(i) which is the noise
+            u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; 
+        end
+     
+        
+          % add u to matrix 
+            par_change(e,i,:,:) = u;
+        
+    end
+end
+toc
+
+%stats using 4D matrix
+mean_par = mean(par_change, 4);
+stds_par= std(par_change,0,4);
+
+save('data/par_change-spon.mat', 'par_change')
+save('data/mean_par-spon.mat', 'mean_par')
+save('data/stds_par-spon.mat', 'stds_par')
+save('data/h_range-spon.mat', 'h_range')
+
+%remove transient
+par_change_trans(:,:,:,:) = par_change(:,:,:,101:end);
+
+% mean and std
+mean_par_trans = mean(par_change_trans, 4);
+stds_par_trans= std(par_change_trans,0,4);
+
+%% PLOTS
+%surf
 figure;
 subplot(2,1,1)
 x = h_range(:,:,1);
 y = h_range(:,:,2);
-C = mean_parE_trans';
-pcolor(x,y, C);
+C = mean_par_trans(:,:,1);
+surf(x,y, C);
 title('mean rate E')
 xlabel('hE')
 ylabel('hI')
@@ -404,107 +482,240 @@ colorbar
 subplot(2,1,2)
 x = h_range(:,:,1);
 y = h_range(:,:,2);
-C = stds_parE_trans';
-pcolor(x,y, C);
+C = stds_par_trans(:,:,1);
+surf(x,y, C);
+set(gca,'zscale','log');
 title('std dev E')
 xlabel('hE')
 ylabel('hI')
 colorbar
 
+saveas(gcf, 'figures/2Drate_1indepvar_b-3-3_surf.png')
+
+%pcolor
+figure;
+subplot(2,1,1)
+x = h_range(:,:,1);
+y = h_range(:,:,2);
+C = mean_par_trans(:,:,1);
+pcolor(x,y, C);
+%hold on
+%contour(C, [1 1],'color','r','lineWidth',1) %highlight [1;1] input
+title('mean rate E')
+xlabel('hE')
+ylabel('hI')
+colorbar
+
+subplot(2,1,2)
+x = h_range(:,:,1); %E input 0:15
+y = h_range(:,:,2); %I input (0:15)*(-3:3) 
+C = stds_par_trans(:,:,1);
+pcolor(x,y, C);
+%hold on
+%contour(C, [1.0 1.0],'color','r','lineWidth',1) %highlight [1;1] input
+title('std dev E')
+xlabel('hE')
+ylabel('hI')
+colorbar
+
+saveas(gcf, 'figures/2Drate_1indepvar_b-3-3_contour.png')
 
 
+%% parameter search with 2 independent ranges
+
+clear h h_range par_change mean_par stds_par
+
+E_range = (0:0.5:15);
+I_range = (0:0.5:15); 
+%par_change = zeros(length(I_range),length(E_range), 2, length(t));
+tic
+for e = 1:length(E_range)
+    
+    % update h_range input
+    fprintf('\n E-range: %d\n\n', E_range(e))
+    
+    for i = 1:length(I_range) % look over range of I input
+        
+        fprintf('\n I-value: %d\n', I_range(i))
+    
+        % update I_range input    
+         h = [E_range(e);I_range(i)];
+         fprintf('E input: %d\n', h(1))
+         fprintf('I input: %d\n', h(2))
+         
+         h_range(e,i,:) = h;
+
+    
+        %Generate noise vector
+        for ii = 1:length(t)-1
+            eta(:,ii+1) = eta(:,ii) + (-eta(:,ii) *dt + sqrt(2 .*dt*tau_noise*sigma_a.^2).*(randn(2,1))) *(1./tau_noise);
+        end
+
+        %Integrate neural system with noise forcing
+        for ii = 1: length(eta)-1
+            % Forward Euler step + x(i) which is the noise
+            u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; 
+        end
+        
+         % add u to matrix 
+          par_change(e,i,:,:) = u;
+        
+    end
+end
+toc
+
+%stats using 4D matrix
+mean_par = mean(par_change, 4);
+stds_par= std(par_change,0,4);
+
+save('data/par_change-twoInd-0-15.mat', 'par_change', '-v7.3')
+save('data/mean_par-twoInd-0-15.mat', 'mean_par')
+save('data/stds_par-twoInd-0-15.mat', 'stds_par')
+save('data/h_range-twoInd-0-15.mat', 'h_range')
+
+%remove transient
+par_change_trans(:,:,:,:) = par_change(:,:,:,101:end);
+
+% mean and std
+mean_par_trans = mean(par_change_trans, 4);
+stds_par_trans= std(par_change_trans,0,4);
 
 
 %% Plots parameter search without transient
-Ee_range = squeeze(h_range(1,:,:));
-Ee_range = Ee_range(1,:);
+Ee_range = squeeze(h_range(:,1,:));
+Ee_range = Ee_range(:,1);
 Ii_range = squeeze(h_range(2,:,:))';
-Ii_range = Ii_range(1,:);
+Ii_range = Ii_range(2,:);
+
 
 % plot stats
 figure;
-xticklabels = Ii_range(1:3:end);
+xticklabels = Ii_range(1:6:end);
 xticks = linspace(1, size(mean_par_trans(:,:,1), 2), numel(xticklabels));
-yticklabels = Ee_range(1:3:end);
+yticklabels = Ee_range(1:6:end);
 yticks = linspace(1, size(mean_par_trans(:,:,1), 1), numel(yticklabels));
 
 subplot(2,2,1)
+% imagesc(log(ReLU(mean_par_trans(:,:,1))))
 imagesc(mean_par_trans(:,:,1))
-title("mean rate E")
-xlabel('h_I')
-ylabel('h_E')
+title("mean rate E",'FontSize', 14)
+xlabel('h_I', 'FontSize', 12)
+ylabel('h_E', 'FontSize', 12)
 colorbar
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
-
+set(gca,'fontsize',14)
 subplot(2,2,2)
+% imagesc(log(ReLU(mean_par_trans(:,:,2))))
 imagesc(mean_par_trans(:,:,2))
-title("mean rate I")
-xlabel('h_I')
-ylabel('h_E')
+title("mean rate I", 'FontSize', 14)
+xlabel('h_I', 'FontSize', 12)
+ylabel('h_E', 'FontSize', 12)
 colorbar
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
-
+set(gca,'fontsize',14)
 subplot(2,2,3)
+% imagesc(log(ReLU(stds_par_trans(:,:,1))))
 imagesc(stds_par_trans(:,:,1))
-title("std dev rate E")
-xlabel('h_I')
-ylabel('h_E')
+title("std dev rate E", 'FontSize', 14)
+xlabel('h_I', 'FontSize', 12)
+ylabel('h_E', 'FontSize', 12)
 colorbar
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
-
+set(gca,'fontsize',14)
 subplot(2,2,4)
+% imagesc(log(ReLU(stds_par_trans(:,:,2))))
 imagesc(stds_par_trans(:,:,2))
-title("std dev rate I")
-xlabel('h_I')
-ylabel('h_E')
+title("std dev rate I", 'FontSize', 14)
+xlabel('h_I', 'FontSize', 12)
+ylabel('h_E', 'FontSize', 12)
 colorbar
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+set(gca,'fontsize',14)
 
-saveas(gcf, '2Drate_meanstd_b-8-8_trans.png')
+%saveas(gcf, 'figures/2Drate_meanstd_I-0-15_trans.pdf')
 
 
 %mesh plots
 figure;
 subplot(2,2,1)
 surf(mean_par_trans(:,:,1), 'FaceAlpha',0.5)
-title('mean E')
-xlabel('h_I')
-ylabel('h_E')
-zlabel('mean rate')
+title('mean E', 'FontSize', 16)
+xlabel('h_I', 'FontSize', 12)
+ylabel('h_E', 'FontSize', 12)
+zlabel('mean rate', 'FontSize', 12)
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+set(gca,'fontsize',13)
 subplot(2,2,2)
 surf(mean_par_trans(:,:,2), 'FaceAlpha',0.5)
-title('mean I')
-xlabel('h_I')
-ylabel('h_E')
-zlabel('mean rate')
+title('mean I', 'FontSize', 16)
+xlabel('h_I', 'FontSize', 12)
+ylabel('h_E', 'FontSize', 12)
+zlabel('mean rate', 'FontSize', 12)
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+set(gca,'fontsize',13)
 subplot(2,2,3)
 surf(stds_par_trans(:,:,1), 'FaceAlpha',0.5)
-title('std dev E')
-xlabel('h_I')
-ylabel('h_E')
-zlabel('std dev')
-set(gca,'zscale','log');
+title('std dev E', 'FontSize', 16)
+xlabel('h_I', 'FontSize', 12)
+ylabel('h_E', 'FontSize', 12)
+zlabel('std dev', 'FontSize', 12)
+%set(gca,'zscale','log');
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+set(gca,'fontsize',13)
+caxis([0 0.7])
 subplot(2,2,4)
 surf(stds_par_trans(:,:,2), 'FaceAlpha',0.5)
-title('std dev I')
-xlabel('h_I')
-ylabel('h_E')
-zlabel('st dev')
-set(gca,'zscale','log');
+title('std dev I', 'FontSize', 16)
+xlabel('h_I', 'FontSize', 12)
+ylabel('h_E', 'FontSize', 12)
+zlabel('st dev', 'FontSize', 12)
+%set(gca,'zscale','log');
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+set(gca,'fontsize',13)
+caxis([0 0.7])
 
-saveas(gcf, '2Drate_meanstd_mesh_b-8-8_trans.png')
+%saveas(gcf, 'figures/2Drate_meanstd_mesh_I-0-15_trans.png')
+
+
+
+
+%% Check for similar input [1;1]
+
+for i = 1:size(h_range,1)
+    meanE(:,i) = mean_par_trans(i,i,1);
+    stdE(:,i) = stds_par_trans(i,i,1);
+    hE(:,i) = h_range(i,1,1);
+    
+    for ii = 1:size(h_range,2)
+        meanI(:,ii) = mean_par_trans(ii,ii,2);
+        stdI(:,ii) = stds_par_trans(ii,ii,2);
+        hI(:,ii) = h_range(1,ii,2);
+    end 
+end
+
+figure;
+subplot(2,1,1)
+plot(meanE, 'LineWidth', 2)
+hold on
+plot(meanI,  'LineWidth', 2)
+title('mean rate')
+subplot(2,1,2)
+plot(stdE, 'LineWidth', 2)
+hold on
+plot(stdI, 'LineWidth', 2)
+title('std dev')
+
+saveas(gca, 'figures/2Drate_2indpvar_check_simh.png')
+
+
 
 
 %% Plot (mesh) after spontaneous rate (h_E = 2)
