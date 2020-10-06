@@ -1,11 +1,22 @@
-% author:              Jantine Broek
-% collaborator:     Yashar Ahmadian
+% author:               Jantine Broek
+% collaborator:         Yashar Ahmadian
 % goal:                 recreate E-I 2D model of Hennequin add noise and so simulate data of Kohn&Cohen. 
 %                          We focused on analysing how the intrinsic dynamics of the network shaped external noise
 %                          to give rise to stimulus dependent patterns of response variability.
-% model:              stabilized supralinear network model with OU process
+% model:                stabilized supralinear network model with OU process
 %                          (noise added per dt)
+%% 
+clear
+clc
 
+%% Paths
+dir_base = '/Users/jantinebroek/Documents/03_projects/02_SSN/ssn_nc_attention';
+
+dir_work = '/matlab';
+dir_data = '/data';
+dir_fig = '/figures';
+
+cd(fullfile(dir_base, dir_work));
 
 %% Parameters
 k = 0.3; %scaling constant 
@@ -50,6 +61,7 @@ ode_rate = @(t, u, h)  (-u + k.*ReLU(W *u + h).^n)./tau;
 
 %% Data
 % data from ssn_rate_noise_2D.m
+cd(fullfile(dir_base, dir_data));
 
 load('data/par_change-twoInd-0-15.mat')
 load('data/mean_par-twoInd-0-15.mat')
@@ -110,7 +122,8 @@ for row = 1:2
     end
 end
 
-saveas(gcf, 'figures/2Drate_cacov_h215.png')
+cd(fullfile(dir_base, dir_fig));
+saveas(gcf, '2Drate_cacov_h215.png')
 
 
 %% Get covariance matrix for sweeps over E and I input
@@ -218,7 +231,7 @@ set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 set(gca,'fontsize',14)
 
-saveas(gcf, 'figures/2Drate_cacov_twoInd0_15.png')
+% saveas(gcf, 'figures/2Drate_cacov_twoInd0_15.png')
 
 % mesh plot for integral values over range E and I
 figure;
@@ -268,7 +281,7 @@ set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 set(gca,'fontsize',13)
 caxis([0 100])
 
-saveas(gcf, 'figures/2Drate_cacov_twoInd0_15_mesh.png')
+% saveas(gcf, 'figures/2Drate_cacov_twoInd0_15_mesh.png')
 
 
 %% Get noise correlation

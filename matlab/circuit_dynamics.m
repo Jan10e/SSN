@@ -1,12 +1,25 @@
-% author:              Jantine Broek
-% collaborator:     Yashar Ahmadian
+% author:               Jantine Broek
+% collaborator:         Yashar Ahmadian
 % goal:                 recreate E-I 2D model of Hennequin add noise and so simulate data of Kohn&Cohen. 
 %                          We focused on analysing how the intrinsic dynamics of the network shaped external noise
 %                          to give rise to stimulus dependent patterns of response variability.
-% model:              reduced rate model (See experimental procedures)
+% model:                reduced rate model (See experimental procedures)
+%% 
+clear
+clc
+
+%% Paths
+dir_base = '/Users/jantinebroek/Documents/03_projects/02_SSN/ssn_nc_attention';
+
+dir_work = '/matlab';
+dir_data = '/data';
+dir_fig = '/figures';
+
+cd(fullfile(dir_base, dir_work));
 
 %% Mean potential Vm
 % The more depolarized the cell, the higher the spike rate
+V_rest = -70; %mV; resting potential
 
 % Simulate random Vm for monotary population averaging of all E or I cells
 % Excitory cell Vm
@@ -134,10 +147,10 @@ t_bin = 30; %ms; time bins
 
 
 % Excitatory cells
-dVi = (1/tau_E) * (-Vi + V_rest + Vdyn_E - Vdyn_I + ht) + eta_t;  
+dVi = (1/tau_E) * (-V_I + V_rest + Vdyn_E - Vdyn_I + ht) + eta_t;  
 
 % Inhibitory cells
-dVi = (1/tau_I) * (-Vi + V_rest + Vdyn_E - Vdyn_I + ht) + eta_t;  
+dVi = (1/tau_I) * (-V_I + V_rest + Vdyn_E - Vdyn_I + ht) + eta_t;  
 
 %dVi = (1/tau_E) * (-V_rest + Vdyn_E - Vdyn_I);  
 

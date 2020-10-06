@@ -24,6 +24,6 @@ tau = [tau_E; tau_I];
 h = [15; 15]; %mV; no input = 0; somewhat larger input = 2; large input = 15
 
 %% ODE
-du = ((-u + V_rest) + W*(k.*ReLU(u - V_rest).^n) + h)./tau;
+du = ((-u + V_rest) + W*(k.*functions.ReLU(u - V_rest).^n) + h)./tau;
 end
 

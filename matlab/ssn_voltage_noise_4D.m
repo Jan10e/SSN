@@ -1,11 +1,22 @@
-% author:              Jantine Broek
-% collaborator:     Yashar Ahmadian
+% author:               Jantine Broek
+% collaborator:         Yashar Ahmadian
 % goal:                 recreate E-I 2D model of Hennequin add noise and so simulate data of Kohn&Cohen. 
 %                          We focused on analysing how the intrinsic dynamics of the network shaped external noise
 %                          to give rise to stimulus dependent patterns of response variability.
-% model:              stabilized supralinear network model with OU process
+% model:                stabilized supralinear network model with OU process
 %                          (noise added per dt)
+%% 
+clear
+clc
 
+%% Paths
+dir_base = '/Users/jantinebroek/Documents/03_projects/02_SSN/ssn_nc_attention';
+
+dir_work = '/matlab';
+dir_data = '/data';
+dir_fig = '/figures';
+
+cd(fullfile(dir_base, dir_work));
 
 %% Parameters
 k = 0.3; %scaling constant 
@@ -52,7 +63,7 @@ u(:,1) = u_0;
 %% Functions
 
 % ODE
-ode = @(t, u, h)  ((-u + V_rest) + W*(k.*ReLU(u - V_rest).^n) + h)./tau;
+ode = @(t, u, h)  ((-u + V_rest) + W*(k.*functions.ReLU(u - V_rest).^n) + h)./tau;
 
 
 %% Generate a graph of fluctuations versus input
@@ -88,12 +99,12 @@ for nn = 1:length(h_range)
     stds_range(:,nn)= std(u,0,2);
     
     % Get rates
-    R = k.*ReLU(u - V_rest).^n;
+    R = k.*functions.ReLU(u - V_rest).^n;
     rate(:,nn) = mean(R, 2);
     
 end
 
-figure;
+f1 = figure;
 subplot(1,3,1)
 plot(h_range, rate, 'Linewidth', 2)
 title("mean rate")
@@ -117,7 +128,7 @@ legend("E", "P", "V", "S")
 
 
 %% Voltage output for h is 0, 2, 15
-figure;
+f2 = figure;
 h_range = [0, 2, 15];
 for m = 1:length(h_range)
     
@@ -142,7 +153,24 @@ for m = 1:length(h_range)
 end
 
 
-
-
 %% Sanity check
 % look how this works for variaous tau > when tau is really small and big
+
+%% Export/Save
+outfile = 'SSN_voltage_4D_noise';
+       
+suffix_fig_f1 = 'mean_std';
+suffix_fig_f2 = '4Dvolt_h0215';
+suffix_data = '';       
+
+out_mat = [outfile, suffix_data, '.mat'];
+out_fig_f1_png = [outfile, suffix_fig_f1, '.png'];
+out_fig_f2_png = [outfile, suffix_fig_f2, '.png'];
+
+outpath_data = fullfile(dir_base, dir_data, out_mat);
+outpath_fig_f1_png = fullfile(dir_base, dir_fig, out_fig_f1_png);
+outpath_fig_f2_png = fullfile(dir_base, dir_fig, out_fig_f2_png);
+
+% figures
+saveas(f1, outpath_fig_f1_png,'png')
+saveas(f2, outpath_fig_f2_png,'png')

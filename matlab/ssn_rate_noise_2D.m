@@ -5,7 +5,18 @@
 %                          to give rise to stimulus dependent patterns of response variability.
 % model:              stabilized supralinear network model with OU process
 %                          (noise added per dt)
+%% 
+clear
+clc
 
+%% Paths
+dir_base = '/Users/jantinebroek/Documents/03_projects/02_SSN/ssn_nc_attention';
+
+dir_work = '/matlab';
+dir_data = '/data';
+dir_fig = '/figures';
+
+cd(fullfile(dir_base, dir_work));
 
 %% Parameters
 k = 0.3; %scaling constant 
@@ -37,16 +48,14 @@ sigma_a = sigma_0.*sqrt(1 + (tau./tau_noise));
 eta = zeros(2,length(t));        % Allocate integrated eta vector
 
 % Parameters - ODE: initial 
-%u_0 = [-80; -60];                   % Vm for neuron (-80 for E, 60 for I)
 u_0 = ones(2,1);  
 u = zeros(2,length(eta));
 u(:,1) = u_0;
 
-
 %% Functions
 
 % ODE with rate as dynamical variable
-ode_rate = @(t, u, h)  (-u + k.*ReLU(W *u + h).^n)./tau;
+ode_rate = @(t, u, h)  (-u + k.*functions.ReLU(W *u + h).^n)./tau;
 
 
 %% Generate a graph of fluctuations versus input (noise can be excluded; line 101)
@@ -625,6 +634,7 @@ colorbar
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 set(gca,'fontsize',14)
+% caxis([0 2])
 subplot(2,2,4)
 % imagesc(log(ReLU(stds_par_trans(:,:,2))))
 imagesc(stds_par_trans(:,:,2))
@@ -635,8 +645,9 @@ colorbar
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 set(gca,'fontsize',14)
+% caxis([0 2])
 
-%saveas(gcf, 'figures/2Drate_meanstd_I-0-15_trans.pdf')
+% saveas(gcf, 'figures/2Drate_meanstd_I-0-15_trans.png')
 
 
 %mesh plots
@@ -682,7 +693,7 @@ set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 set(gca,'fontsize',13)
 caxis([0 0.7])
 
-%saveas(gcf, 'figures/2Drate_meanstd_mesh_I-0-15_trans.png')
+% saveas(gcf, 'figures/2Drate_meanstd_mesh_I-0-15_trans.png')
 
 
 %% Check for similar input [1;1]

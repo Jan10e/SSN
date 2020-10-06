@@ -4,6 +4,19 @@
 %                          We focused on analysing how the intrinsic dynamics of the network shaped external noise
 %                          to give rise to stimulus dependent patterns of response variability.
 % model:              stabilized supralinear network model (which is a reduced rate model)    
+%% 
+clear
+clc
+
+%% Paths
+dir_base = '/Users/jantinebroek/Documents/03_projects/02_SSN/ssn_nc_attention';
+
+dir_work = '/matlab';
+dir_data = '/data';
+dir_fig = '/figures';
+
+cd(fullfile(dir_base, dir_work));
+
 %% Solve SSN ODE (without noise term) 
 % open ReLU.m and ssn_ode.m function files
 
@@ -13,11 +26,12 @@ T0 = 0;
 Tf = 0.5; % 5 minutes
 tspan = [T0:dt:Tf];
 
+%u_0 = [-80; 60]; %-80 for E, 60 for I
 u_0 = ones(2,1);           % set initial condition to 1 to calculate trajectory
 
 
 %use ode45 to numerical solve eq using Runge-Kutta 4th/5th order
-[tout, u] = ode45(@ssn_rate_ode, tspan, u_0);
+[tout, u] = ode45(@functions.ssn_voltage_ode, tspan, u_0);
 
 % like uniform step sizes: interpolate the result
 ui = interp1(tout,u,tspan);
@@ -25,10 +39,10 @@ ui = interp1(tout,u,tspan);
 x = u(1,:);
 y = u(2,:);
 
-figure(1);
+f1 = figure;
 %subplot(2,1,1)
 plot(tout, u, 'Linewidth', 1.5)
-ylabel("rate - ode45 response")
+ylabel("voltage - ode45 response")
 %legend("E", "I")
 %subplot(2,1,2)
 %plot(tspan, ui, '-.', 'Linewidth', 1.5)
@@ -59,9 +73,9 @@ for ii = 1:length(u)-1
     W(:,ii+1) = W(:,ii) + (1./tau).*(-W(:,ii).*dt + (2 * tau .* sigma_0.^2).^0.5.*randn(2,1) * dt.^0.5);
 end
 
-figure(2);
+f2 = figure;
 plot(tspan, u+transpose(W), 'Linewidth', 1.5)
-ylabel("rate - ode45 response")
+ylabel("voltage - ode45 response")
 xlabel("time")
 title("Time traces of response with noise")
 legend("E", "I")
@@ -71,17 +85,16 @@ legend("E", "I")
 Tf = 0.25; % 5 minutes
 tspan = [T0:dt:Tf];
 
-u0array = repmat([0:2:50], 2,1);
+u0array = repmat([-150:20:100], 2,1);
 uarray = zeros(length(u0array),length(tspan), 2);
 
-
-% % Without interpolation, tspan has time steps
 % figure(3);
 % for jj = 1:length(u0array)
-%         [tout,u] = ode45(@(t,u) ssn_rate_ode(t,u), tspan, u0array(:,jj));
+%         [tout,u] = ode45(@(t,u) ssn_voltage_ode(t,u), tspan, u0array(:,jj));
 %         plot(tspan, u, 'Linewidth', 1.5);
 %         hold on
 % end
+% %uarray = interp2(u); % store each one for plotting later
 % 
 % xlabel('time (minutes)');
 % ylabel('rate');
@@ -89,26 +102,75 @@ uarray = zeros(length(u0array),length(tspan), 2);
 % title('rate over time; different starting points');
 
 
-
-% With interpolation
 for jj = 1:length(u0array)
-        [tout,u] = ode45(@(t,u) ssn_rate_ode(t,u), [T0 Tf], u0array(:,jj));
+        [tout,u] = ode45(@(t,u) functions.ssn_voltage_ode(t,u), [T0 Tf], u0array(:,jj));
         uarray(jj,:,:) = interp1(tout,u,tspan); % store each one for plotting later
 end
 
 % plot rate over time; different starting points'
-figure('units','normalized','outerposition',[0 0 1 1]);
+f3 = figure('units','normalized','outerposition',[0 0 1 1]);
 subplot(1,2,1)
 plot(tspan,uarray(:,:,1), 'Linewidth', 1.5);
 xlabel('Time');
-ylabel('Rate');
+ylabel('Voltage');
 legend(strcat('start =', num2str(u0array(1,:)')))
 title("E")
 subplot(1,2,2)
 plot(tspan,uarray(:,:,2), 'Linewidth', 1.5);
 xlabel('Time');
-ylabel('Rate');
+ylabel('Voltage');
 legend(strcat('start =', num2str(u0array(1,:)')))
 title("I")
 
-%saveas(gcf,'2Drate_startpos.png')
+% saveas(gcf,'2D_startpos.png')
+
+
+%% Family of curves for different starting points (DO NOT USE)
+y0array = rand(2,10)*200-100; % start them randomly between -5 and 5 in both dimensions
+% yarray = zeros(size(y0,2),length(tpositions));
+
+f4 = figure;
+for ii=1:10
+    y0=y0array(:,ii);
+    
+    [tout,yout] = ode45(@functions.ssn_voltage_ode, tspan, y0);
+   
+    hold all;
+    plot(yout(:,1),yout(:,2));
+    
+end
+
+xlabel('Voltage E');
+ylabel('Voltage I');
+title('Voltage over time; different starting points');
+
+%saveas(gcf,'2D_famCurves.png')
+
+% What determines whether a starting point ends up high or low? 
+
+%% Export/Save
+outfile = 'SSN_voltage_2D_';
+       
+suffix_fig_f1 = 'time_traces';
+suffix_fig_f2 = 'time_traces_UOnoise';
+suffix_fig_f3 = 'startpos';
+suffix_fig_f4 = 'famCurves';
+suffix_data = '';       
+
+out_mat = [outfile, suffix_data, '.mat'];
+out_fig_f1_png = [outfile, suffix_fig_f1, '.png'];
+out_fig_f2_png = [outfile, suffix_fig_f2, '.png'];
+out_fig_f3_png = [outfile, suffix_fig_f3, '.png'];
+out_fig_f4_png = [outfile, suffix_fig_f4, '.png'];
+
+outpath_data = fullfile(dir_base, dir_data, out_mat);
+outpath_fig_f1_png = fullfile(dir_base, dir_fig, out_fig_f1_png);
+outpath_fig_f2_png = fullfile(dir_base, dir_fig, out_fig_f2_png);
+outpath_fig_f3_png = fullfile(dir_base, dir_fig, out_fig_f3_png);
+outpath_fig_f4_png = fullfile(dir_base, dir_fig, out_fig_f4_png);
+
+% figures
+saveas(f1, outpath_fig_f1_png,'png')
+saveas(f2, outpath_fig_f2_png,'png')
+saveas(f3, outpath_fig_f3_png,'png')
+

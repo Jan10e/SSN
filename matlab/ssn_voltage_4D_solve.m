@@ -4,6 +4,18 @@
 %                          We focused on analysing how the intrinsic dynamics of the network shaped external noise
 %                          to give rise to stimulus dependent patterns of response variability.
 % model:              stabilized supralinear network model (which is a reduced rate model)    
+%% 
+clear
+clc
+
+%% Paths
+dir_base = '/Users/jantinebroek/Documents/03_projects/02_SSN/ssn_nc_attention';
+
+dir_work = '/matlab';
+dir_data = '/data';
+dir_fig = '/figures';
+
+cd(fullfile(dir_base, dir_work));
 
 %% Solve SSN ODE (without noise term) 
 % open ReLU.m and ssn_voltage_4Dode.m function files
@@ -20,7 +32,7 @@ u_0 = ones(4,1);           % set initial condition to 1 to calculate trajectory
 
 %% Solve using ode45
 %use ode45 to numerical solve eq using Runge-Kutta 4th/5th order
-[tout, u] = ode45(@ssn_voltage_4Dode, tspan, u_0);
+[tout, u] = ode45(@functions.ssn_voltage_4Dode, tspan, u_0);
 
 % like uniform step sizes: interpolate the result
 ui = interp1(tout,u,tspan);
@@ -28,7 +40,8 @@ ui = interp1(tout,u,tspan);
 x = u(1,:);
 y = u(2,:);
 
-figure(1);
+cd(fullfile(dir_base, dir_fig));
+figure;
 %subplot(2,1,1)
 plot(tout, u, 'Linewidth', 1.5)
 ylabel("voltage - ode45 response")

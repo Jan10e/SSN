@@ -1,11 +1,24 @@
-% author:              Jantine Broek
-% collaborator:     Yashar Ahmadian
+% author:               Jantine Broek
+% collaborator:         Yashar Ahmadian
 % goal:                 recreate ssn ode 4D network model, with rate as dynamic variable and OUP noise and so simulate data of Kohn&Cohen. 
 %                          We focused on analysing how the intrinsic dynamics of the network shaped external noise
 %                          to give rise to stimulus dependent patterns of response variability.
-% model:              stabilized supralinear network model with OU process
+% model:                stabilized supralinear network model with OU process
 %                          (noise added per dt)
 
+
+%% 
+clear
+clc
+
+%% Paths
+dir_base = '/Users/jantinebroek/Documents/03_projects/02_SSN/ssn_nc_attention';
+
+dir_work = '/matlab';
+dir_data = '/data';
+dir_fig = '/figures';
+
+cd(fullfile(dir_base, dir_work));
 
 %% Parameters 
 % as in Kuchibotla
@@ -41,7 +54,7 @@ paramsave = param;
 %% Functions
 
 % ODE rate with t and u only
-ode_rate2 = @(t, u, param)  (-u + param.k.*ReLU(param.W *u + param.Hh).^param.n)./param.tau;
+ode_rate2 = @(t, u, param)  (-u + param.k.*functions.ReLU(param.W *u + param.Hh).^param.n)./param.tau;
 
 
 %% Solve 4D ODE
@@ -60,7 +73,7 @@ tpositions = T0:dt:Tf;
 ui = interp1(tout,x,tpositions);
 
 
-figure;
+f1 = figure
 %subplot(2,1,1)
 plot(tout, x, 'Linewidth', 2)
 ylabel("rate - ode45 response")
@@ -87,7 +100,7 @@ end
 
 
 % plot rate over time; different starting points'
-figure('units','normalized','outerposition',[0 0 1 1]);
+f2 = figure('units','normalized','outerposition',[0 0 1 1]);
 subplot(1,4,1)
 plot(tpositions,xarray(:,:,1), 'Linewidth', 1.5);
 xlabel('time');
@@ -110,9 +123,27 @@ xlabel('time');
 legend(strcat('start =', num2str(x0array(1,:)')))
 title("S")
 
-saveas(gcf,'4D_startpos.png')
+% saveas(gcf,'4D_startpos.png')
 
-%% Look at many h input
+%% Export/Save
+outfile = 'SSN_rate_4D_';
+       
+suffix_fig_f1 = '4Drate_solve';
+suffix_fig_f2 = '4D_startpos.png';
+suffix_data = '';       
+
+out_mat = [outfile, suffix_data, '.mat'];
+out_fig_f1_png = [outfile, suffix_fig_f1, '.png'];
+out_fig_f2_png = [outfile, suffix_fig_f2, '.png'];
+
+outpath_data = fullfile(dir_base, dir_data, out_mat);
+outpath_fig_f1_png = fullfile(dir_base, dir_fig, out_fig_f1_png);
+outpath_fig_f2_png = fullfile(dir_base, dir_fig, out_fig_f2_png);
+
+
+% figures
+saveas(f1, outpath_fig_f1_png,'png')
+saveas(f2, outpath_fig_f2_png,'png')
 
 
 

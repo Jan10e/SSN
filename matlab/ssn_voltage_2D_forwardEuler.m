@@ -3,7 +3,18 @@
 % goal:                 This script is to solve the SSN numerically without
 %                           using ode45, to create a plot of time traces
 %                           over a range of h
+%% 
+clear
+clc
 
+%% Paths
+dir_base = '/Users/jantinebroek/Documents/03_projects/02_SSN/ssn_nc_attention';
+
+dir_work = '/matlab';
+dir_data = '/data';
+dir_fig = '/figures';
+
+cd(fullfile(dir_base, dir_work));
 
 %% Parameters
 k = 0.3; %scaling constant 
@@ -42,11 +53,12 @@ u(:,1) = u_0;
 %% Functions
 
 % ODE
-ode = @(t, u, h)  ((-u + V_rest) + W*(k.*ReLU(u - V_rest).^n) + h)./tau;
+ode = @(t, u, h)  ((-u + V_rest) + W*(k.*functions.ReLU(u - V_rest).^n) + h)./tau;
 
 
 %% H-range values and examine the time traces
 % At what h value does the fixed point change?
+
 h_range = (0:0.5:20);
 %h_range = [0;0];  
 
@@ -73,7 +85,8 @@ for nn = 1:length(h_range)
     
     
 end
-    
+
+cd(fullfile(dir_base, dir_fig));
 figure;
 plot(t, u, 'Linewidth', 1.5)
 ylabel("voltage - Forward Euler")
@@ -81,7 +94,7 @@ xlabel("time")
 title("Time traces of response")
 legend("E", "I")
 
-%saveas(gcf, '2Dvolt_TimetraceHrange[-100; -80].png')
+saveas(gcf, '2Dvolt_TimetraceHrange[-100; -80].png')
 
 
 

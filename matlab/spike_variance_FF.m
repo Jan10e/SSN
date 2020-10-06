@@ -58,7 +58,7 @@ s(:,1) = s_0;
 %% Functions
 
 % ODE with rate as dynamical variable
-ode_rate = @(t, u, h)  (-u + k.*ReLU(W *u + h).^n)./tau;
+ode_rate = @(t, u, h)  (-u + k.*functions.ReLU(W *u + h).^n)./tau;
 
 
 %% Get rates
@@ -136,15 +136,15 @@ rateI = squeeze(ratesT(:,2,:));
 
 
 %plot spike for h=2
-figure;
-subplot(221),plot(ratesE(1,:))
+f1 = figure;
+subplot(221),plot(rateE(1,:))
 xlabel('time'), ylabel('rates'), title('rates for h=2')
-subplot(222),plot(spikeE(1,:))
+subplot(222),plot(spike_strchE(1,:))
 xlabel('time'), ylabel('spikes'),title('spikes for h=2')
 % plot spike over h-range
-subplot(223),plot(ratesE(:,200))
+subplot(223),plot(rateE(:,200))
 xlabel('h-range'), ylabel('rates'), title('rates across h-range')
-subplot(224),plot(spikeE(:,200))
+subplot(224),plot(spike_strchE(:,200))
 xlabel('h-range'), ylabel('spikes'), title('spikes across h-range')
 
 
@@ -189,13 +189,13 @@ spike_stepE = squeeze(spike_h(:,1,:));
 spike_stepI = squeeze(spike_h(:,2,:));
 
 %plot spike for h=2
-figure;
-subplot(221),plot(ratesE(1,:))
+f2 = figure;
+subplot(221),plot(rateE(1,:))
 xlabel('time'), ylabel('rates'), title('rates for h=2')
 subplot(222),plot(spike_stepE(1,:))
 xlabel('time'), ylabel('spikes'),title('spikes for h=2')
 % plot spike over h-range
-subplot(223),plot(ratesE(:,200))
+subplot(223),plot(rateE(:,200))
 xlabel('h-range'), ylabel('rates'), title('rates across h-range')
 subplot(224),plot(spike_stepE(:,200))
 xlabel('h-range'), ylabel('spikes'), title('spikes across h-range')
@@ -204,5 +204,22 @@ xlabel('h-range'), ylabel('spikes'), title('spikes across h-range')
 %% Variance
 % double integral for two time point over time constant
 
+%% Export/Save
+outfile = 'spike_variance_FF';
+       
+suffix_fig_f1 = 'spike_rates_stretching_window';
+suffix_fig_f2 = 'spike_rates_sliding_window';
+suffix_data = '';       
 
+out_mat = [outfile, suffix_data, '.mat'];
+out_fig_f1_png = [outfile, suffix_fig_f1, '.png'];
+out_fig_f2_png = [outfile, suffix_fig_f2, '.png'];
+
+outpath_data = fullfile(dir_base, dir_data, out_mat);
+outpath_fig_f1_png = fullfile(dir_base, dir_fig, out_fig_f1_png);
+outpath_fig_f2_png = fullfile(dir_base, dir_fig, out_fig_f2_png);
+
+% figures
+saveas(f1, outpath_fig_f1_png,'png')
+saveas(f2, outpath_fig_f2_png,'png')
 

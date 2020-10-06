@@ -4,6 +4,18 @@
 %                           (SDE) to model the noise term, eta, in
 %                           Hennequin's model
 % model:              Ornstein-Uhlenbeck Stochastic Diff Eq (OU-SDE)
+%% 
+clear
+clc
+
+%% Paths
+dir_base = '/Users/jantinebroek/Documents/03_projects/02_SSN/ssn_nc_attention';
+
+dir_work = '/matlab';
+dir_data = '/data';
+dir_fig = '/figures';
+
+cd(fullfile(dir_base, dir_work));
 
 %% Parameters for OUP
 % Time constant

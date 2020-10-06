@@ -9,8 +9,8 @@ To view a copy of this license, visit
 http://creativecommons.org/licenses/by-nc-sa/4.0/.
 """
 
-import scipy as sp
-
+# import scipy as sp
+import numpy as np
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton
 from PyQt5.QtGui import QIcon
@@ -42,27 +42,27 @@ w_EE = 1.25
 w_EI = -0.65
 w_IE = 1.2
 w_II = -0.5
-Ww = sp.array([[w_EE, w_EI], [w_IE, w_II]])
+Ww = np.array([[w_EE, w_EI], [w_IE, w_II]])
 
 # Membrane time constants
 tau_E = 0.02
 tau_I = 0.01
-tau = sp.array([tau_E, tau_I])
+tau = np.array([tau_E, tau_I])
 
 # external forcing
-h = sp.ones(2)*0
+h = np.ones(2)*0
 
 # initial and time vector
-u_0 = sp.array([-60, -80])
+u_0 = np.array([-60, -80])
 T_init = 0
 T_final = 100
 dt = 1e-3
 
 # noise process is Ornstein-Uhlenbeck
 tau_noise = 0.05
-sigma = sp.array([0.2, 0.1])
+sigma = np.array([0.2, 0.1])
 sigma_scaled = sigma*(1. + tau/tau_noise)**0.5
-eta_init = sp.array([1, -1])
+eta_init = np.array([1, -1])
 seed = 1
 
 ##############################
@@ -72,10 +72,10 @@ seed = 1
 
 
 def ReLU(x, alpha=0):
-    return sp.maximum(x, x*alpha*sp.ones(x.shape))
+    return np.maximum(x, x*alpha*np.ones(x.shape))
 
 def df(u, t):
-    du = ((-u + V_rest) + sp.dot(Ww, (Kk*ReLU(u - V_rest)**Nn)) + h)/tau
+    du = ((-u + V_rest) + np.dot(Ww, (Kk*ReLU(u - V_rest)**Nn)) + h)/tau
     return du
 
 def euler(u, t, dt, df):
@@ -87,13 +87,10 @@ def euler(u, t, dt, df):
 ######  Data structures  #####
 ##############################
 
-
-
-Tt = sp.arange(T_init, T_final, dt)
-Uu = sp.zeros((len(Tt), 2))
-Uu2 = sp.zeros((len(Tt), 2))
-eta = sp.zeros((len(Tt), 2))
-
+Tt = np.arange(T_init, T_final, dt)
+Uu = np.zeros((len(Tt), 2))
+Uu2 = np.zeros((len(Tt), 2))
+eta = np.zeros((len(Tt), 2))
 
 
 ##############################
@@ -104,22 +101,22 @@ eta = sp.zeros((len(Tt), 2))
 stds = []
 mean = []
 rate = []
-h_range = sp.arange(0, 20, 2.5)
-#h_range = sp.arange(1)
+h_range = np.arange(0, 20, 2.5)
+#h_range = np.arange(1)
 for h_factor in h_range:
 
     # update input
     print(h_factor)
-    h = sp.ones(2)*h_factor
+    h = np.ones(2)*h_factor
 
 
     # First generate noise vector
     eta[0, :] = eta_init
-    sp.random.seed(seed)
+    np.random.seed(seed)
     for iT, t in enumerate(Tt[:-1]):
         dt = Tt[iT + 1] - Tt[iT]
         eta[iT + 1, :] = eta[iT, :]  - eta[iT, :]*dt/tau_noise +\
-                            sp.random.normal(0, sigma_scaled)*\
+                            np.random.normal(0, sigma_scaled)*\
                             (2.*dt/tau_noise)**0.5
 
     # Next, integrate neural system with noise forcing
@@ -129,12 +126,12 @@ for h_factor in h_range:
         Uu[iT + 1, :] = euler(Uu[iT, :], t, dt, df) + eta[iT, :]*dt/tau
 
     # Get std and mean Vm
-    stds.append(sp.std(Uu, axis=0))
-    mean.append(sp.mean(Uu, axis=0))
+    stds.append(np.std(Uu, axis=0))
+    mean.append(np.mean(Uu, axis=0))
 
     # Get the rates
     R = Kk*ReLU(Uu - V_rest)**Nn
-    rate.append(sp.mean(R, axis=0))
+    rate.append(np.mean(R, axis=0))
 
 
 plt.figure(1)
@@ -166,7 +163,7 @@ for idx, h_factor in enumerate([0, 2, 15]):
 
     # update input
     print(h_factor)
-    h = sp.ones(2)*h_factor
+    h = np.ones(2)*h_factor
     
     for iT, t in enumerate(Tt[:-1]):
         dt = Tt[iT + 1] - Tt[iT]

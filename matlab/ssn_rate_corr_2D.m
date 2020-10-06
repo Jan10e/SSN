@@ -5,7 +5,18 @@
 %                          to give rise to stimulus dependent patterns of response variability.
 % model:              stabilized supralinear network model with OU process
 %                          (noise added per dt)
+%% 
+clear
+clc
 
+%% Paths
+dir_base = '/Users/jantinebroek/Documents/03_projects/02_SSN/ssn_nc_attention';
+
+dir_work = '/matlab';
+dir_data = '/data';
+dir_fig = '/figures';
+
+cd(fullfile(dir_base, dir_work));
 
 %% Parameters
 k = 0.3; %scaling constant 
@@ -50,6 +61,7 @@ ode_rate = @(t, u, h)  (-u + k.*ReLU(W *u + h).^n)./tau;
 
 %% Data
 % data from ssn_rate_noise_2D.m
+cd(fullfile(dir_base, dir_data));
 
 load('data/par_change-twoInd-0-15.mat')
 load('data/mean_par-twoInd-0-15.mat')
@@ -197,7 +209,6 @@ end
 
 %% Plots cross and auto correlations
 
-
 %get separate areas
 intg_EE = squeeze((intg(:,1,:,:)));
 intg_EI = squeeze((intg(:,2,:,:)));
@@ -301,12 +312,6 @@ caxis([0 100])
 % saveas(gcf, 'figures/2Drate_cacross_twoInd0_15_mesh.png')
 
 
-
-
-
-
-
-
 %% Correlation for specific h_tot
 % separate plot for a=2 different b (1.6, 0.2, 0, -1.4)
 find(I_range == 1)
@@ -339,7 +344,7 @@ end
 find(I_range == 1)
 
 titles = {'r_E - r_E','r_E - r_I','r_I - r_E','r_I - r_I'};
-figure;
+f4 = figure;
 for row = 1:2
     for col = 1:2
         nm = 2*(row-1)+col;
@@ -482,10 +487,6 @@ ylabel('b-range')
 zlabel('integral')
 set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
-
-
-
-
 
 
 

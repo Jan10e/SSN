@@ -5,17 +5,36 @@
 %                          to give rise to stimulus dependent patterns of response variability.
 % model:              stabilized supralinear network model with OU process
 %                          (noise added per dt)
+%% 
+clear
+clc
 
+%% Paths
+dir_base = '/Users/jantinebroek/Documents/03_projects/02_SSN/ssn_nc_attention';
+
+dir_work = '/matlab';
+dir_data = '/data';
+dir_fig = '/figures';
+
+cd(fullfile(dir_base, dir_work));
 
 %% Parameters
-k = 0.01; %scaling constant 
-n = 2.2;
+k = 0.3; %scaling constant 
+n = 2;
 
-% Connectivity Matrix W as in Kuchibotla, Miller & Froemke
-w_EE = .017; w_EP = -.956; w_EV = -.045; w_ES = -.512;
-w_PE = .8535; w_PP = -.99; w_PV = -.09; w_PS = -.307;
-w_VE = 2.104; w_VP = -.184; w_VV = 0; w_VS = -.734;
-w_SE = 1.285; w_SP = 0; w_SV = -.14; w_SS = 0;
+% Connectivity Matrix W as in Dipoppa -> Pfeffer (2013), except for W_nE for which Kuchibotla
+% is used
+% Dipoppa:
+% - P and E cells get similar inhibition from S cells
+% - E cells lack V input
+% - divisive inhibition from S to V cells
+% w_EE = .017; w_EP = -1; w_EV = 0; w_ES = -.54; % original
+w_EE = 1.017; w_EP = -1; w_EV = 0; w_ES = -.54;
+w_PE = .8535; w_PP = -1.01; w_PV = 0; w_PS = -.33; %original
+% w_PE = .8535; w_PP = -1.01; w_PV = 0; w_PS = -.54;
+w_VE = 2.104; w_VP = 0; w_VV = 0; w_VS = -.77;
+% w_SE = 1.285; w_SP = 0; w_SV = -.15; w_SS = 0; %original
+w_SE = 1.285; w_SP = 0; w_SV = -.55; w_SS = 0;
 
 W = [w_EE w_EP w_EV w_ES;
     w_PE w_PP w_PV w_PS;
@@ -34,11 +53,6 @@ tau = [tau_E; tau_P; tau_V; tau_S];
 dt = 1e-3;
 t = 0:dt:100;
 
-% dt = 0.003; %0.1; % 0.1 minutes
-% T0 = 0; % initial time
-% Tf = 5; % final time = 100 minutes
-% t = T0:dt:Tf;
-
 % Parameters - Noise process is Ornstein-Uhlenbeck
 tau_noise = 50/1000; 
 sigma_0E = 0.2;                      %mV; E cells
@@ -50,7 +64,6 @@ sigma_a = sigma_0.*sqrt(1 + (tau./tau_noise));
 eta = zeros(4,length(t));        % Allocate integrated eta vector
 
 % Parameters - ODE: initial 
-%u_0 = [-80; -60; -60; -60];                   % Vm for neuron (-80 for E, 60 for I)
 u_0 = ones(4,1);  
 u = zeros(4,length(eta));
 u(:,1) = u_0;
@@ -59,57 +72,70 @@ u(:,1) = u_0;
 %% Functions
 
 % ODE with rate as dynamical variable
-ode_rate = @(t, u, h)  (-u + k.*ReLU(W *u + h).^n)./tau;
+ode_rate = @(t, u, h)  (-u + k.*functions.ReLU(W *u + h).^n)./tau;
 
+
+%% Data
+% or run script below
+cd(fullfile(dir_base, dir_data));
+
+h_range = (0:0.5:15);
+load('4Drate_par_change_Dip.mat')
+load('4Drate_mean_Dip.mat')
+load('4Drate_stds_Dip.mat')
 
 %% Generate a graph of fluctuations versus input (noise can be excluded)
-h_range = (0:1:20);
-stds_range = zeros(4, length(h_range));
-mean_range = zeros(4, length(h_range));
-mx = zeros(length(h_range),4, length(t));
-for nn = 1:length(h_range)
+cd(fullfile(dir_base, dir_work));
+
+h_range = (0:0.5:15);
+stds_par = zeros(4, length(h_range));
+mean_par = zeros(4, length(h_range));
+par_change = zeros(length(h_range),4, length(t));
+for i = 1:length(h_range)
     
     % update input  
-    h_factor = h_range(nn);
+    h_factor = h_range(i);
     disp(h_factor)
     h = ones(4,1) * h_factor;
-    
 
     %Generate noise vector
     for ii = 1:length(t)-1
         eta(:,ii+1) = eta(:,ii) + (-eta(:,ii) *dt + sqrt(2 .*dt*tau_noise*sigma_a.^2).*(randn(4,1))) *(1./tau_noise);
     end
     
-
     %Integrate neural system with noise forcing
     for ii = 1: length(eta)-1  
       % Forward Euler step + x(i) which is the noise
-      u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau; %set eta * 0 to remove noise
+      u(:,ii+1) = u(:,ii) + ode_rate(t, (u(:,ii)), h)*dt + eta(:,ii) * dt./tau;
     end
-  
-    %add u to matrix
-    mx(nn,:,:) = u;
+    
+    
+    % add u to matrix 
+     par_change(i,:,:) = u;
     
      % Get mean and std
-    mean_range(:,nn) = mean(u, 2);
-    stds_range(:,nn)= std(u,0,2);
+    mean_par(:,i) = mean(u, 2);
+    stds_par(:,i)= std(u,0,2);
     
 end
 
-%mean_mx = mean(mx,3);
-%stds_mx = std(mx,0,3);
+% save('data/4Drate_par_change_Dip.mat', 'par_change')
+% save('data/4Drate_mean_Dip.mat', 'mean_par')
+% save('data/4Drate_stds_Dip.mat', 'stds_par')
 
+
+%% Plots
 figure;
 subplot(1,2,1)
-plot(h_range, mean_range, 'Linewidth', 2)
-title("mean rate")
+plot(h_range, mean_par, 'Linewidth', 2)
+title("mean rate")  
 ylabel("rate")
 xlabel("h")
 legend("E", "P", "V", "S")
 
 
 subplot(1,2,2)
-plot(h_range, stds_range, 'Linewidth', 2)
+plot(h_range, stds_par, 'Linewidth', 2)
 title("std dev. rate")
 ylabel("rate")
 xlabel("h")
@@ -154,6 +180,10 @@ for m = 1:length(h_range)
     legend("E", "P", "V", "S")
 
 end
+
+
+%% Covariance
+
 
 
 %% Parameter search
@@ -202,7 +232,7 @@ end
 mean_par = mean(par_change, 4);
 stds_par= std(par_change,0,4);
 
-save('data/4Drate_par_change.mat', 'par_change')
+save('data/4Drate_par_change.mat', 'par_change') %this one is not being saved
 save('data/4Drate_mean_par.mat', 'mean_par')
 save('data/4Drate_stds_par.mat', 'stds_par')
 
@@ -293,8 +323,6 @@ set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
 xtickangle(45)
 set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
 colorbar
-
-
 
 
 
@@ -482,16 +510,39 @@ end
 
 
 figure;
+titles = {'r_E - r_E','r_E - r_P','r_E - r_V','r_E - r_S', ...
+    'r_P - r_E', 'r_P - r_P', 'r_P - r_V', 'r_P -r_S', ...
+    'r_V - r_E', 'r_V - r_P', 'r_V - r_V', 'r_V - r_S', ...
+    'r_S - r_E', 'r_S - r_P', 'r_S -r_V', 'r_S - r_S'};
 xticklabels = a_range(1:4:end);
 xticks = linspace(1, size(intg, 3), numel(xticklabels));
 yticklabels = b_range(1:5:end);
 yticks = linspace(1, size(intg, 4), numel(yticklabels));
+
+% mesh plot
 for row = 1:4
     for col = 1:4
         nm = 4*(row-1)+col;
         intg_ab = squeeze(intg(:,nm,:,:)); %get separate integrals per corr        
         subplot(4,4,nm)
         surf(intg_ab, 'FaceAlpha',0.5)
+        title(titles{1,nm}) %titles is defined in cross corr h=2, h=15
+        xlabel('a-range')
+        ylabel('b-range')
+        zlabel('integral')
+        set(gca, 'XTick', xticks, 'XTickLabel', xticklabels)
+        set(gca, 'YTick', yticks, 'YTickLabel', yticklabels)
+    end
+end
+
+
+for row = 1:4
+    for col = 1:4
+        nm = 4*(row-1)+col;
+        intg_ab = squeeze(intg(:,nm,:,:)); %get separate integrals per corr        
+        subplot(4,4,nm)
+        imagesc(intg_ab)
+        colorbar
         title(titles{1,nm}) %titles is defined in cross corr h=2, h=15
         xlabel('a-range')
         ylabel('b-range')
